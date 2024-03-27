@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="needl.class.js"></script>
+    <script>
+        let haystack = new Image();
+
+        // Callback function for "haystack" Image
+        haystack.onload = function (event) {
+            document.getElementById("processBtn").disabled = false;
+        }
+        
+        function uploadFile(fileInput) {
+            if (fileInput.files.length == 1) {
+                var imageFile = fileInput.files[0];
+                if (imageFile.type == "image/jpeg") {
+                    console.log("loaded an image");
+                }
+            }
+            else {
+                alert("Please first choose or drop an image file...");
+                return;
+            }
+            console.log(imageFile);
+            document.body.style.backgroundImage = imageFile.name;
+        }
+
+        function toggleVisibility(input) {
+            document.getElementById("passkey1").type = (input.checked) ? "text" : "password";
+            document.getElementById("passkey2").type = (input.checked) ? "text" : "password";
+        }
+
+        function makeNeedl(btn) {
+            let f = btn.form;
+            let imageFile = f.photoFile.files[0];
+            // gather image, passkeys, and options
+            let pk1 = f.passkey1.value;
+            let pk2 = f.passkey2.value;
+            let fn = imageFile.name;
+
+            // Handle configuration options
+
+            // If the haystack (image) is loaded, pass the haystack, filename, and passkeys
+            if (haystack.complete) {
+                let ndl = new Needl(haystack, fn, pk1, pk2);
+                if (ndl.invalid) {
+                    console.log(ndl.errMsg);
+                    return;
+                }
+                const p = ndl.makeHashes();
+                p.then((res) => {
+                    ndl.iteratePixels();
+                    f.ndlDisplay.innerText = ndl.needl;
+                    document.getElementById("copyNdlBtn").disabled = false;
+                    console.log(ndl.needl);
+                });
+            }
+
+        }
+
+        // Load image as soon as possible, before submitting passkeys
+        function loadImage(imageFile) {
+            let f = imageFile.form;
+            let file = imageFile.files[0];
+            let reader  = new FileReader();
+            let imageBtn = document.getElementById("photo");
+
+            // Callback function for File Reader
+            reader.onloadend = function (data) {
+                haystack.src = reader.result;
+                imageBtn.style.backgroundImage = "url('" + reader.result + "')";
+            }
+            
+            reader.readAsDataURL(file);
+        }
+    </script>
+    <style>
+        body {
+            margin: 0px;
+            background-color: lightgray;
+        }
+        header {
+            background-color: aqua;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        section {
+            display: flex;
+            flex-wrap: wrap;
+            row-gap: 10px;
+            column-gap: 10px;
+            width: inherit;
+        }
+        div#container {
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            min-width: 375px;
+            max-width: 840px;
+            padding: 5px;
+            border: 1px solid red;
+        }
+        section div {
+            padding: 3px;
+            flex-grow: 1;
+            /*min-width: 200px;*/
+        }
+        #photo {
+            background-color: blueviolet;
+            background-size: cover;
+        }
+        #photo label {
+            cursor: pointer;
+        }
+        #passkeys {
+            background-color: crimson;
+        }
+        #settings {
+            background-color: rgb(20, 220, 37);
+        }
+        #needl {
+            background-color: rgb(226, 43, 180);
+        }
+    </style>
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>UI</title>
+</head>
+<body>
+	<div id="container">
+        <header>Needl</header>
+        <form>
+        <section>
+            <div id="photo">
+                <label for="photoFile">Select a photo</label>
+                <input type="file" id="photoFile" name="photoFile" hidden="true" onchange="loadImage(this);" />
+            </div>
+            <div id="passkeys">
+                <input type="password" id="passkey1" name="passkey1" placeholder="Passkey One" /><br />
+                <input type="password" id="passkey2" name="passkey2" placeholder="Passkey Two" /><br />
+                <label for="switchVisibility">Show:  </label>
+                <input type="checkbox" id="switchVisibility" name="switchVisibility" onchange="toggleVisibility(this);" />
+            </div>
+            <div id="settings">
+                <label for="needlSize">Size:  </label><input type="number" id="needlSize" name="needlSize" min="32" max="256" step="16" value="128" /><br />
+                <button type="button" id="processBtn" onclick="makeNeedl(this);" disabled="true">Process</button>
+            </div>
+            <div id="needl">
+                <textarea id="ndlDisplay" name="ndlDisplay" cols="32" rows="4" readonly="true"></textarea><br />
+                <button type="button" id="copyNdlBtn" disabled="true">Copy</button>
+            </div>
+        </section>
+        </form>
+    </div>
+</body>
+</html>
