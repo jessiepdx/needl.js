@@ -1,9 +1,13 @@
 # needl.js 🪡
 
 **NEEDL:**  A simple multikey password generator / manager - all from a photo
+
 **CREATED:**  2018
+
 **UPDATED:**  03/27/2024
+
 **VERSION:**  0.1.1b
+
 **ABOUT:**
     Using two simple passkeys and the photo filename to generate a hashing salt, Needl creates three unique hashes. 
     One for the x axis, one for the y axis, and one as a modififer. Think of a photo as a large two dimensional map of pixels. 
@@ -20,8 +24,10 @@
     Like finding a needle in a haystack.
 
     For more information, visit:  https://github.com/jessiepdx/needl.js
+
 **NOTES:**
     Considering making all methods private and a single public async method that returns the needl string in a promise
+
 **TODO:**
     Validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
     check for options argument object and set options accordingly (including datetime for salting)
