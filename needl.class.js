@@ -13,10 +13,10 @@ ABOUT:
         Photo00179.jpg (this string itself is a part of salt string)
         passkey1:  "First hike with puppy"  (each of these passkeys are salted as well)
         passkey2:  "personal instagram"
-    
     Only this unique map of pixels, and three unique keys:  passkey1, passkey2, and filename (with datetime options for additional unique salting)
     will retrieve that same unique passkey signature. Use the same combination but a different string for passkey2, for example - "work instagram", 
     you will get a completely different and unique passkey signature.
+    Like finding a needle in a haystack.
 
     For more information, visit:  https://github.com/jessiepdx/needl.js
 NOTES:
@@ -27,30 +27,42 @@ TODO:
     add encoding methods
 */
 class Needl {
+    // Keys and Salt
     #passkey1;
     #passkey2;
+    #filename = "";
 
+    // Haystack and Needl
     #canvas = document.createElement("canvas");
     #haystack = this.#canvas.getContext("2d", { willReadFrequently: true });
-    #needl;
-
     #cursor = { "start" : {}, "iterator" : {}, "modifier" : {} };
-    #filename = "";
+    #needl = "";
+
+    // Buffers to hold values
     #base11Buffer = [];
     #byteBuffer = [];
 
+    // Results data
     #totalValid = 0;
     #totalNotValid = 0;
 
+    // Options
     #ndlSize = 128;
+    // dateSalt is added to cursor.modifier
+    #ndl_req = {};
 
-    // haystack is an image file, pk1 and pk2 are strings, options is a key-value pair collection
+    // haystack is an image file; filename, pk1, and pk2 are strings; options is a key-value pair collection (not required)
     constructor(image, fn, pk1, pk2, options = {}) {
-        // validate data
-        //  TODO: current regular expression is just for testing, need to create actual ones
-        let pk_regExp = /^([A-Za-z0-9]+( [A-Za-z0-9]+)+)$/i;
+        // Check for and uppack options here
+        if (options.hasOwnProperty("ndlDate")) {
+            this.#cursor.modifier.dateSalt = options.ndlDate;
+        }
+
+        // Validate data
+        // Basic regular expression check
+        let pk_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}$/;
         // let fn_regExp = /^([A-Za-z\d]+( -\.[A-Za-z\d])+)\.(?:jpe?g|gif|png)$/i;
-        let fn_regExp = /[A-Za-z\d]+/i;
+        let fn_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}(.jpe?g|.gif|.png|.bmp)$/;
         
         // test for required arguments
         if (!image || !pk1 || !pk2) {
@@ -65,8 +77,6 @@ class Needl {
         if (!fn_regExp.test(fn)) {
             return { "invalid" : true, "errMsg" : "filename requirements not met" };
         }
-
-        // Check for and uppack options here
 
         // test for minimum pixel count
         //  TODO:  will improve this later
@@ -90,8 +100,8 @@ class Needl {
         let saltDigits = this.#filename.match(/\d/g);
         this.#cursor.modifier.multiplier = saltDigits.reduce((sum, val) => sum + parseInt(val, 10), 0);
 
-        let saltString = (this.#cursor.modifier.hasOwnProperty("datetime")) ? 
-            saltAlpha.reduce((sum, val) => sum + val, "") + saltDigits.reduce((sum, val) => sum + val, "") + cursor.modifier.datetime.toString(16) : 
+        let saltString = (this.#cursor.modifier.hasOwnProperty("dateSalt")) ? 
+            saltAlpha.reduce((sum, val) => sum + val, "") + saltDigits.reduce((sum, val) => sum + val, "") + this.#cursor.modifier.dateSalt : 
             saltAlpha.reduce((sum, val) => sum + val, "") + saltDigits.reduce((sum, val) => sum + val, "");
 
         // Create two unique salt strings, one for each passkey
@@ -243,10 +253,23 @@ class Needl {
     }
 
     get results() {
-        return [this.#totalValid, this.#totalNotValid];
+        
+        return { "iterations" : this.#cursor.iterator.count, "valid" : this.#totalValid / 3, "invalid" : this.#totalNotValid / 3, "totalPixels" : this.#canvas.width * this.#canvas.height };
     }
 
     get needl() {
-        return this.#findNeedl();
+        if (this.#needl.length != this.#ndlSize) {
+            // returns a promise to resolve value
+            return this.#findNeedl();
+        }
+        else {
+            // returns stored value
+            return this.#needl;
+        }
+        
     }
+    //  TODO:  Add two more getters:
+    //  one to get regular expressions for fields for checking values in the UI
+    //  and one to get the default values for options for setting up forms in UI
+    //  These should be a class method and not instance method?
 }
