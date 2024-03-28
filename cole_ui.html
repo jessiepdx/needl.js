@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="needl.class.js"></script>
+    <script>
+        let haystack = new Image();
+
+        // Callback function for "haystack" Image
+        haystack.onload = function (event) {
+            document.getElementById("processBtn").disabled = false;
+        }
+
+        function uploadFile(fileInput) {
+            if (fileInput.files.length == 1) {
+                var imageFile = fileInput.files[0];
+                if (imageFile.type == "image/jpeg") {
+                    console.log("loaded an image");
+                }
+            }
+            else {
+                alert("Please first choose or drop an image file...");
+                return;
+            }
+            console.log(imageFile);
+            document.body.style.backgroundImage = imageFile.name;
+        }
+
+        function toggleVisibility(input) {
+            document.getElementById("passkey1").type = (input.checked) ? "text" : "password";
+            document.getElementById("passkey2").type = (input.checked) ? "text" : "password";
+        }
+
+        function makeNeedl(btn) {
+            let f = btn.form;
+            let imageFile = f.photoFile.files[0];
+            // gather image, passkeys, and options
+            let pk1 = f.passkey1.value;
+            let pk2 = f.passkey2.value;
+            let fn = imageFile.name;
+
+            // Handle configuration options
+
+            // If the haystack (image) is loaded, pass the haystack, filename, and passkeys
+            if (haystack.complete) {
+                let ndl = new Needl(haystack, fn, pk1, pk2);
+                if (ndl.invalid) {
+                    console.log(ndl.errMsg);
+                    return;
+                }
+
+                // needl getter method returns a promise
+                const n = ndl.needl;
+                n.then((r) => {
+                    console.log(r);
+                    f.ndlDisplay.innerText = r;
+                    document.getElementById("copyNdlBtn").disabled = false;
+                });
+            }
+
+        }
+
+        // Load image as soon as possible, before submitting passkeys
+        function loadImage(imageFile) {
+            let f = imageFile.form;
+            let file = imageFile.files[0];
+            let reader = new FileReader();
+            let imageBtn = document.getElementById("photo");
+
+            // Callback function for File Reader
+            reader.onloadend = function (data) {
+                haystack.src = reader.result;
+                imageBtn.style.backgroundImage = "url('" + reader.result + "')";
+            }
+
+            reader.readAsDataURL(file);
+        }
+    </script>
+    <style>
+        body {
+            transition: all 0.2s ease;
+            font-family: sans-serif;
+            font-weight: 100;
+            font-size: 2rem;
+            margin: 0;
+            background-color: #f0f0f0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 3px 3px 10px #fffa, -3px -3px 10px #3332;
+
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+            font-size: 4rem;
+            font-weight: 100;
+            letter-spacing: 3px;
+            color: #aaa;
+            text-shadow: 5px 5px 10px #fffa, -5px -5px 10px #3332;
+
+        }
+
+        #container {}
+
+        section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        section div {
+            flex-grow: 1;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f8f8f8;
+            display: flex;
+            gap: 10px;
+            flex-flow: column;
+            justify-content: space-between;
+        }
+
+        input,
+        button,
+        textarea {
+            font-family: sans-serif;
+            font-weight: 100;
+            font-size: 1.5rem;
+            width: 100%;
+            padding: 10px;
+            margin: 0px 0;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            background-color: #ffffff;
+            font-size: 1rem;
+            width: -moz-available;
+            width: available;
+            cursor: pointer;
+            box-shadow: inset 0px 0px 5px #0001;
+
+        }
+
+        input::placeholder {
+            font-family: sans-serif;
+            font-weight: 100;
+            font-size: 1.5rem;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+        }
+
+        form {
+            width: 800px;
+            max-width: calc(100vw - 2rem);
+            padding: 1rem;
+            border-radius: 10px;
+            background-color: #f0f0f0;
+            box-shadow: 5px 5px 20px #fffe, -10px -10px 20px #3331;
+
+        }
+
+        #switchVisibility {
+            display: none;
+        }
+
+        #photo {
+            cursor: pointer;
+            text-align: center;
+            line-height: 2.5rem;
+            background-color: #dddddd;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-flow: column;
+            justify-content: center;
+            border: 2px dashed #aaa;
+            box-shadow: inset 0px 0px 20px #0001;
+        }
+
+        #photo input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        #copyNdlBtn,
+        #processBtn {
+            font-family: sans-serif;
+            font-weight: 100;
+            font-size: 1.5rem;
+        }
+
+        #copyNdlBtn:hover,
+        #processBtn:hover {
+            font-family: sans-serif;
+            font-weight: 100;
+            font-size: 1.5rem;
+            opacity: 0.8;
+        }
+
+        #photo label {
+            display: block;
+            color: #888;
+            font-weight: 100;
+            mix-blend-mode: color-burn;
+        }
+
+        label {
+            cursor: pointer;
+        }
+    </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Needl</title>
+</head>
+
+<body>
+    <div id="container">
+        <header>Needl</header>
+        <form>
+            <section>
+                <div id="photo">
+                    <label for="photoFile">Select or Drop a photo</label>
+                    <input type="file" id="photoFile" name="photoFile" onchange="loadImage(this);" />
+                </div>
+                <div id="passkeys">
+                    <label for="switchVisibility">Show Passkey </label>
+                    <input type="password" id="passkey1" name="passkey1" placeholder="Passkey One" />
+                    <input type="password" id="passkey2" name="passkey2" placeholder="Passkey Two" />
+                    <input type="checkbox" id="switchVisibility" name="switchVisibility" onchange="toggleVisibility(this);" />
+                </div>
+                <div id="settings">
+                    <label for="needlSize">Needl Size </label><input type="number" id="needlSize" name="needlSize" min="32" max="256" step="16" value="128" />
+                    <button type="button" id="processBtn" onmouseup="makeNeedl(this);" disabled="true">Process</button>
+                </div>
+                <div id="needl">
+                    <textarea id="ndlDisplay" name="ndlDisplay" cols="32" rows="4" readonly="true"></textarea>
+                    <button type="button" id="copyNdlBtn" disabled="true">Copy</button>
+                </div>
+            </section>
+        </form>
+    </div>
+</body>
+
+</html>
