@@ -1,4 +1,4 @@
-# needl.js
+# needl.js 🪡
 
 NEEDL:  A simple multikey password generator / manager - all from a photo
 CREATED:  2018
