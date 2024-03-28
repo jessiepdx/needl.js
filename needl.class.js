@@ -1,11 +1,30 @@
 /*
-For more information, visit:  
+NEEDL:  A simple multikey password generator / manager - all from a photo
+CREATED:  2018
+UPDATED:  03/27/2024
+VERSION:  0.1.1b
+ABOUT:
+    Using two simple passkeys and the photo filename to generate a hashing salt, Needl creates three unique hashes. 
+    One for the x axis, one for the y axis, and one as a modififer. Think of a photo as a large two dimensional map of pixels. 
+    Needl navigates through that map using coordinates that only your unique hashes can generate.
+    Using the pixels at those unique coordinates, Needl calculates its own unique passkey signature. 
+    Now anytime you need to retrieve that passkey, you just need that photo, and your two passkeys.
+    Example:
+        Photo00179.jpg (this string itself is a part of salt string)
+        passkey1:  "First hike with puppy"  (each of these passkeys are salted as well)
+        passkey2:  "personal instagram"
+    
+    Only this unique map of pixels, and three unique keys:  passkey1, passkey2, and filename (with datetime options for additional unique salting)
+    will retrieve that same unique passkey signature. Use the same combination but a different string for passkey2, for example - "work instagram", 
+    you will get a completely different and unique passkey signature.
 
+    For more information, visit:  https://github.com/jessiepdx/needl.js
 NOTES:
-Considering making all methods private and a single public async method that returns the needl string in a promise
+    Considering making all methods private and a single public async method that returns the needl string in a promise
 TODO:
-Complete validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
-Complete options object
+    Validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
+    check for options argument object and set options accordingly (including datetime for salting)
+    add encoding methods
 */
 class Needl {
     #passkey1;
@@ -29,8 +48,9 @@ class Needl {
     constructor(image, fn, pk1, pk2, options = {}) {
         // validate data
         //  TODO: current regular expression is just for testing, need to create actual ones
-        let pk_regExp = /[A-Za-z0-9]+/i;
-        let fn_regExp = /[A-Za-z0-9]+/i;
+        let pk_regExp = /^([A-Za-z0-9]+( [A-Za-z0-9]+)+)$/i;
+        // let fn_regExp = /^([A-Za-z\d]+( -\.[A-Za-z\d])+)\.(?:jpe?g|gif|png)$/i;
+        let fn_regExp = /[A-Za-z\d]+/i;
         
         // test for required arguments
         if (!image || !pk1 || !pk2) {
@@ -45,6 +65,14 @@ class Needl {
         if (!fn_regExp.test(fn)) {
             return { "invalid" : true, "errMsg" : "filename requirements not met" };
         }
+
+        // Check for and uppack options here
+
+        // test for minimum pixel count
+        //  TODO:  will improve this later
+        if (image.width * image.height < this.#ndlSize * 1000) {
+            return { "invalid" : true, "errMsg" : "not enough pixels in this image" };
+        }
         
         this.#haystack.canvas.width = image.width;
         this.#haystack.canvas.height = image.height;
@@ -56,7 +84,7 @@ class Needl {
 
     // Using javascript's SubleCrypto functions are asyncronous and cannot be called within the constructor
     // Therefore a method to create the hashes is called separately
-    async makeHashes() {
+    async #makeHashes() {
         // First create a salt from filename
         let saltAlpha = this.#filename.match(/[A-Za-z]/g);
         let saltDigits = this.#filename.match(/\d/g);
@@ -107,7 +135,7 @@ class Needl {
         } 
     }
 
-    iteratePixels() {
+    #iteratePixels() {
         // set current cursor position to the start x and y
         let currentPos = { 
             "x" : (this.#cursor.start.x * this.#cursor.modifier.multiplier) % this.#canvas.width, 
@@ -124,9 +152,11 @@ class Needl {
             // Get  3x3 pixel grid from image context
             let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3);
             //console.log(pixelGrid);
-            this.parsePixelGrid(Array.from(pixelGrid.data));
+            this.#parsePixelGrid(Array.from(pixelGrid.data));
             this.#cursor.iterator.count++;
             
+            // Back up condition to break the loop with an error
+            //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
                 console.log("had to break");
                 break;
@@ -141,7 +171,7 @@ class Needl {
         this.#byteBuffer = [];
     }
 
-    parsePixelGrid(pixelGridArray) {
+    #parsePixelGrid(pixelGridArray) {
         for (var i = 0; i < pixelGridArray.length; i++) {
             let channel = i % 4;
             // ignore the alpha channel and the source pixel (center pixel)
@@ -158,7 +188,7 @@ class Needl {
                         this.#base11Buffer.shift();
                     }
                     if (this.#base11Buffer.length >= 12) {
-                        this.parseBase11(this.#base11Buffer.splice(0, 12));
+                        this.#parseBase11(this.#base11Buffer.splice(0, 12));
                     }
                 }
                 else {
@@ -168,7 +198,7 @@ class Needl {
         }
     }
 
-    parseBase11(valuesArray) {
+    #parseBase11(valuesArray) {
         if (valuesArray.length == 12) {
             // Convert each value in the array to base 11 values (10 = a)
             for (var i = 0; i < 12; i++) {
@@ -177,12 +207,12 @@ class Needl {
             let base11String = valuesArray.join("");
             let decValue = parseInt(base11String, 11);
             let base16String = decValue.toString(16);
-            this.parseBase16(base16String);
+            this.#parseBase16(base16String);
         }
     }
 
-    parseBase16(valuesString) {
-        // special byte will be used for calling certain function in future versions of Needl
+    #parseBase16(valuesString) {
+        // special byte will be used for calling certain function in future versions of Needl for encoding and decoding
         // its value is either 0, 1, or 2 and comes from base 16 values after 5 bytes
         // essentially a "remainder" from the base 11 conversion
         let specialByte = 0;
@@ -205,11 +235,18 @@ class Needl {
         }
     }
 
+    async #findNeedl() {
+        await this.#makeHashes();
+        this.#iteratePixels();
+
+        return this.#needl;
+    }
+
     get results() {
         return [this.#totalValid, this.#totalNotValid];
     }
 
     get needl() {
-        return this.#needl;
+        return this.#findNeedl();
     }
 }
