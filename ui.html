@@ -47,12 +47,13 @@
                     console.log(ndl.errMsg);
                     return;
                 }
-                const p = ndl.makeHashes();
-                p.then((res) => {
-                    ndl.iteratePixels();
-                    f.ndlDisplay.innerText = ndl.needl;
+                
+                // needl getter method returns a promise
+                const n = ndl.needl;
+                n.then((r) => {
+                    console.log(r);
+                    f.ndlDisplay.innerText = r;
                     document.getElementById("copyNdlBtn").disabled = false;
-                    console.log(ndl.needl);
                 });
             }
 
