@@ -1,8 +1,8 @@
 # needl.js
-**NEEDL** -- securely store[^1] and retrieve data within a photograph; _like finding a **needl**e in a haystack._
+**NEEDL** -- securely store and retrieve data within a photograph; _like finding a **needl**e in a haystack._
 
 ## About
-Needl uses four pieces of unique data to securely store[^1] and retrieve data in photographs. We all have hundreds, if not thousands of photographs on our personal devices such as out phones, tablets, and computers; not to mention also stored on various websites on the internet. Most of these photographs have tens of millions of pixels. Pixels represent the colors of light spectrum in values of *red, green, and blue* producing nearly seventeen million color possibilities.  
+Needl uses four pieces of unique data to securely store and retrieve data in photographs. We all have hundreds, if not thousands of photographs on our personal devices such as out phones, tablets, and computers; not to mention also stored on various websites on the internet. Most of these photographs have tens of millions of pixels. Pixels represent the colors of light spectrum in values of *red, green, and blue* producing nearly seventeen million color possibilities.  
 Let's think of a photograph as a unique two dimensional map of pixels then -- each map with millions of locations and millions of possibile values at each location. Needl navigates this unique map using coordinates it creates from three unique keys:  **passkey1**, **passkey2**, and **filename**. These keys are turned into cyrptographic hashes[^2] using techniques similar to how websites handle password storage and verification.
 
 Therefore Needl takes in four pieces of unique data and returns your data hidden within.
