@@ -1,7 +1,7 @@
 # needl.js
+**NEEDL**, a simple multikey password generator / manager - all from a photo
 
-**NEEDL:**  A simple multikey password generator / manager - all from a photo
-
+## About
 **CREATED:**  2018
 
 **UPDATED:**  03/27/2024
@@ -30,7 +30,7 @@ Like finding a needle in a haystack.
 check for options argument object and set options accordingly (including datetime for salting) 
 add encoding methods
 
-##Documentation
+## Documentation
 
 Create and store in a variable a new instance of Needl class. 
 The constructor takes an image `<img>`, filename (string), passkey1 (string), 
