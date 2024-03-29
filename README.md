@@ -29,7 +29,7 @@ This can be used as a stand-alone application for personal use or incorporated i
 Using this unique map of pixels, and three unique keys:  filename, passkey1, and passkey2 yields the following _passkey signature_
 >h$NWdOII4&FyF7\H6N7b\`J_9R)MvY-N~wjAxG#uj\XM+@zQI\`iH3H-zI\`4-gSqdgg,+|Or\7ztqGmLcanuGFz0j4Irmco(Tu:1XH)L&}fpBm}OC8M/Pav'Z9]I}I}jls
 
-_notice that you can use both **passwords** and **passphrases**_ for your passkeys
+*_notice that you can use both **passwords** and **passphrases** for your passkeys_
 
 Changing just one piece of data in either filename, passkey1, or passkey2 will result in a completely different _passkey signature_.
 
