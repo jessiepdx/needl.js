@@ -29,6 +29,19 @@ This can be used as a stand-alone application for personal use or incorporated i
 Using this unique map of pixels, and three unique keys:  filename, passkey1, and passkey2 yields the following _passkey signature_
 >h$NWdOII4&FyF7\H6N7b\`J_9R)MvY-N~wjAxG#uj\XM+@zQI\`iH3H-zI\`4-gSqdgg,+|Or\7ztqGmLcanuGFz0j4Irmco(Tu:1XH)L&}fpBm}OC8M/Pav'Z9]I}I}jls
 
+_notice that you can use both **passwords** and **passphrases**_ for your passkeys
+
+Changing just one piece of data in either filename, passkey1, or passkey2 will result in a completely different _passkey signature_.
+
+**_Example 2:_**
+1. Example photograph (4200 x 3000 - total of 12,600,000 pixels)
+2. Filename:  "Haystack-1433186.jpg"
+3. passkey1:  "MyEasyPassword"  
+4. passkey2:  "work email"
+
+Will yield the following _passkey signature_:
+>Wkk?gJ}=t9K>&nzzYYM}QI6V5~R-P.M)Irj7]3Mn72OZdIp;^B5QIoWI{(BQS7FaG:y\e5fTV#XRJCLymON#jR%cvU's\3]sg'Ap;X>IoWXZjIo|#gb&R'-KrH}[iH$7
+
 **Storing custom data within a photograph** - this was Needl's main function when it was first created in 2018 -- mainly intended for hiding private keys for cyrptocurrencies. For now this feature is left out, but it will be added back again. Many changes were made to the encoding / decoding algorithms used. Currently, one of the only downsides to encoding custom data into a photograph is having to store that photo as a lossless format such as PNG or BMP. This is because compressing photos changes their pixels RGB values just enough that values encoded into the pixels are lost.
 
 ## Documentation
