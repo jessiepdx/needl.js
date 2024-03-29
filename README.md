@@ -29,3 +29,19 @@ Like finding a needle in a haystack.
 **TODO:**  Validation of input arguements (image size min requirements, passkey min requirements, filename min requirements) 
 check for options argument object and set options accordingly (including datetime for salting) 
 add encoding methods
+
+##Documentation
+
+Create and store in a variable a new instance of Needl class. 
+The constructor takes an image `<img>`, filename (string), passkey1 (string), 
+and passkey2 (string) — as well as optional _options_ stored as a collection
+ of key-value pairs. *See below for examples.*  
+**New instance construction example:**  `let ndl = new Needl(img, fn, pk1, pk2);`
+
+Needl uses JavaScript's SubtleDigest to create the hashes it uses. 
+This is an asynchronous function that returns a `Promise`. 
+JavaScript class constructors cannot return a `Promise`, 
+therefore it's best to handle generating these hashes the first time the 
+secret passkey signature (nicknamed *"needl"*) value is requested by calling it's 
+getter method `ndl.needl`. This returns a `Promise` that resolves to the 
+passkey signature (string).
