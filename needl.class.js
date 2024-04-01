@@ -31,6 +31,7 @@ class Needl {
     #passkey1;
     #passkey2;
     #filename = "";
+    // dateSalt is added to cursor.modifier
 
     // Haystack and Needl
     #canvas = document.createElement("canvas");
@@ -51,11 +52,12 @@ class Needl {
     #minCapitals = 1;
     #minDigits = 1;
     #minSymbols = 1;
-    // dateSalt is added to cursor.modifier
-    #ndl_req = [];
+    #allowedSymbols = Array.from("!@#$%^&*()-_+=`~.,<>/?\";:[]{}", val => val.charCodeAt(0));
+    
 
     // haystack is an image file; filename, pk1, and pk2 are strings; options is a key-value pair collection (not required)
     constructor(image, fn, pk1, pk2, options = {}) {
+        console.log(this.#allowedSymbols);
         // Check for and uppack options here
         //  NOTE:  Seems like looping over the options object and checking if this (instance of needl) hasOwnProperty
         //         would be more efficent than a bunch of if statements
@@ -73,6 +75,9 @@ class Needl {
         }
         if (options.hasOwnProperty("minSymbols")) {
             this.#minSymbols = options.minSymbols;
+        }
+        if (options.hasOwnProperty("allowedSymbols")) {
+            this.#allowedSymbols = Array.from(options.allowedSymbols, val => val.charCodeAt(0));
         }
 
         // Validate data
@@ -236,6 +241,13 @@ class Needl {
                     console.log("found a capital");
                     byteArray[this.#cursor.iterator.count % this.#ndlSize] = this.#byteBuffer[i];
                 }
+                
+                // Check for symbols
+                if (tempNeedl.match(/[\W_]/g).length < this.#minSymbols && this.#allowedSymbols.includes(this.#byteBuffer[i])) {
+                    // Found a symbol
+                    console.log("found a symbol");
+                    byteArray[this.#cursor.iterator.count % this.#ndlSize] = this.#byteBuffer[i];
+                }
             }
 
             tempNeedl = new TextDecoder().decode(byteArray);
@@ -312,10 +324,10 @@ class Needl {
             for (var i = 0; i < fiveBytes.length; i++) {
                 let decValue = parseInt(fiveBytes[i], 16);
                 // Check byte value with allowed characters
-                // Alphabetical range:  [A-Z]
-                // Numeric range:  [0-9]
+                // Alphabetical range:  [A-Z] ASCII(65-90) and [a-z] ASCII(97-122)
+                // Numeric range:  [0-9] ASCII(48-57)
                 // Default symbols:
-                if (decValue >= 33 && decValue <= 126) {
+                if (decValue >= 65 && decValue <= 90 || decValue >= 97 && decValue <= 122 || decValue >= 48 && decValue <= 57 || this.#allowedSymbols.includes(decValue)) {
                     this.#byteBuffer.push(decValue);
                 }
             }
