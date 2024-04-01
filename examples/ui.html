@@ -26,6 +26,11 @@
         }
 
         function toggleVisibility(input) {
+            let f = input.form;
+            let toggles = f.querySelectorAll("label.pwdShowHide");
+            for (let i = 0; i < toggles.length; i++) {
+                toggles[i].innerHTML = (input.checked) ? "&#x1F929;" : "&#x1F910;";
+            }
             document.getElementById("passkey1").type = (input.checked) ? "text" : "password";
             document.getElementById("passkey2").type = (input.checked) ? "text" : "password";
         }
@@ -47,24 +52,36 @@
             if (f.ndlDate.value != "") {
                 opt.ndlDate = f.ndlDate.value;
             }
+            if (f.ndlSize.value != 128) {
+                opt.ndlSize = f.ndlSize.value;
+            }
+            if (f.minCaps.value != 1) {
+                opt.minCapitals = f.minCaps.value;
+            }
+            if (f.minDigits.value != 1) {
+                opt.minDigits = f.minDigits.value;
+            }
+            if (f.minSymbols.value != 1) {
+                opt.minSymbols = f.minSymbols.value;
+            }
 
             // If the haystack (image) is loaded, pass the haystack, filename, and passkeys
-            taConsole.innerText = taConsole.innerText + "Loading image file..."
+            //taConsole.innerText = taConsole.innerText + "Loading image file..."
             if (haystack.complete) {
-                taConsole.innerText = taConsole.innerText + "Complete!\n";
+                //taConsole.innerText = taConsole.innerText + "Complete!\n";
                 
-                taConsole.innerText = taConsole.innerText + "Creating Needl Object..."
+                //taConsole.innerText = taConsole.innerText + "Creating Needl Object..."
                 console.log(opt);
                 let ndl = new Needl(haystack, fn, pk1, pk2, opt);
                 if (ndl.invalid) {
                     console.log(ndl.errMsg);
-                    taConsole.innerText = taConsole.innerText + " an error occured\n";
+                    //taConsole.innerText = taConsole.innerText + " an error occured\n";
                     return;
                 }
-                taConsole.innerText = taConsole.innerText + "Complete!\n";
+                //taConsole.innerText = taConsole.innerText + "Complete!\n";
                 
                 // needl getter method returns a promise
-                taConsole.innerText = taConsole.innerText + "Finding Needl passkey..."
+                //taConsole.innerText = taConsole.innerText + "Finding Needl passkey..."
                 const n = ndl.needl;
                 n.then((r) => {
                     console.log(r);
@@ -93,6 +110,7 @@
             reader.readAsDataURL(file);
         }
     </script>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
     <style>
         body {
             margin: 0px;
@@ -102,6 +120,16 @@
             background-color: aqua;
             height: 40px;
             margin-bottom: 10px;
+        }
+        input, textarea {
+            font-size: 14pt;
+            padding: 4px;
+        }
+        label.above {
+            font-size: 10pt;
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
         }
         section {
             display: flex;
@@ -118,28 +146,32 @@
             min-width: 375px;
             max-width: 840px;
             padding: 5px;
-            border: 1px solid red;
+            border: 1px solid rgb(255, 145, 0);
         }
         section div {
-            padding: 3px;
+            border-radius: 3px;
+            padding: 10px;
             flex-grow: 1;
             /*min-width: 200px;*/
         }
         #photo {
-            background-color: blueviolet;
+            background-color: white;
             background-size: cover;
         }
         #photo label {
             cursor: pointer;
         }
         #passkeys {
-            background-color: crimson;
+            background-color: white;
         }
         #settings {
-            background-color: rgb(20, 220, 37);
+            background-color: white;
         }
         #needl {
-            background-color: rgb(226, 43, 180);
+            background-color: white;
+        }
+        .pwdShowHide { 
+            cursor: pointer;
         }
     </style>
     <meta charset="utf-8">
@@ -156,14 +188,19 @@
                 <input type="file" id="photoFile" name="photoFile" hidden="true" onchange="loadImage(this);" />
             </div>
             <div id="passkeys">
-                <input type="password" id="passkey1" name="passkey1" placeholder="Passkey One" /><br />
-                <input type="password" id="passkey2" name="passkey2" placeholder="Passkey Two" /><br />
-                <label for="switchVisibility">Show:  </label>
-                <input type="checkbox" id="switchVisibility" name="switchVisibility" onchange="toggleVisibility(this);" />
+                <input type="password" id="passkey1" name="passkey1" placeholder="Passkey One" /><label class="pwdShowHide" for="switchVisibility">&#x1F910;</label><br />
+                <input type="password" id="passkey2" name="passkey2" placeholder="Passkey Two" /><label class="pwdShowHide" for="switchVisibility">&#x1F910;</label><br />
+                <input type="checkbox" id="switchVisibility" name="switchVisibility" onchange="toggleVisibility(this);" hidden="true" />
+                <h3>Modifier</h3>
+                <label class="above" for="ndlDate">Date:  </label><input type="date" id="ndlDate" name="ndlDate" /><br />
             </div>
             <div id="settings">
-                <label for="ndlSize">Size:  </label><input type="number" id="ndlSize" name="ndlSize" min="32" max="256" step="16" value="128" /><br />
-                <label for="ndlDate">Date:  </label><input type="date" id="ndlDate" name="ndlDate" /><br />
+                <label class="above" for="ndlCount">Needl Count</label><input type="number" id="ndlCount" name="ndlCount" min="1" max="4" step="1" value="1" disabled="true" /><br />
+                <label class="above" for="ndlSize">Size:  </label><input type="number" id="ndlSize" name="ndlSize" min="32" max="256" step="16" value="128" /><br />
+                <label class="above" for="minCaps">Minimum Caps:</label><input type="number" id="minCaps" name="minCaps" min="1" max="4" step="1" value="1" /><br />
+                <label class="above" for="minDigits">Minimum Digits:</label><input type="number" id="minDigits" name="minDigits" min="1" max="4" step="1" value="1" /><br />
+                <label class="above" for="minSymbols">Minimum Symbols:</label><input type="number" id="minSymbols" name="minSymbols" min="1" max="4" step="1" value="1" disabled="true" /><br />
+                <label class="above" for="useSymbols">Symbols:  </label><input type="text" id="useSymbols" name="useSymbols" placeholder="!@#$%^*()_-+=.,>;:" disabled="true" /><br />
                 <button type="button" id="processBtn" onclick="makeNeedl(this);" disabled="true">Process</button>
             </div>
             <div id="needl">
