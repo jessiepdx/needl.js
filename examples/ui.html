@@ -64,6 +64,9 @@
             if (f.minSymbols.value != 1) {
                 opt.minSymbols = f.minSymbols.value;
             }
+            if (f.allowedSymbols.value != "") {
+                opt.allowedSymbols = f.allowedSymbols.value;
+            }
 
             // If the haystack (image) is loaded, pass the haystack, filename, and passkeys
             //taConsole.innerText = taConsole.innerText + "Loading image file..."
@@ -199,8 +202,8 @@
                 <label class="above" for="ndlSize">Size:  </label><input type="number" id="ndlSize" name="ndlSize" min="32" max="256" step="16" value="128" /><br />
                 <label class="above" for="minCaps">Minimum Caps:</label><input type="number" id="minCaps" name="minCaps" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="minDigits">Minimum Digits:</label><input type="number" id="minDigits" name="minDigits" min="1" max="4" step="1" value="1" /><br />
-                <label class="above" for="minSymbols">Minimum Symbols:</label><input type="number" id="minSymbols" name="minSymbols" min="1" max="4" step="1" value="1" disabled="true" /><br />
-                <label class="above" for="useSymbols">Symbols:  </label><input type="text" id="useSymbols" name="useSymbols" placeholder="!@#$%^*()_-+=.,>;:" disabled="true" /><br />
+                <label class="above" for="minSymbols">Minimum Symbols:</label><input type="number" id="minSymbols" name="minSymbols" min="1" max="4" step="1" value="1" /><br />
+                <label class="above" for="allowedSymbols">Symbols:  </label><input type="text" id="allowedSymbols" name="allowedSymbols" placeholder="!@#$%^*()_-+=.,>;:" /><br />
                 <button type="button" id="processBtn" onclick="makeNeedl(this);" disabled="true">Process</button>
             </div>
             <div id="needl">
