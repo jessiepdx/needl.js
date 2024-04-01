@@ -48,14 +48,31 @@ class Needl {
 
     // Options
     #ndlSize = 128;
+    #minCapitals = 1;
+    #minDigits = 1;
+    #minSymbols = 1;
     // dateSalt is added to cursor.modifier
-    #ndl_req = {};
+    #ndl_req = [];
 
     // haystack is an image file; filename, pk1, and pk2 are strings; options is a key-value pair collection (not required)
     constructor(image, fn, pk1, pk2, options = {}) {
         // Check for and uppack options here
+        //  NOTE:  Seems like looping over the options object and checking if this (instance of needl) hasOwnProperty
+        //         would be more efficent than a bunch of if statements
         if (options.hasOwnProperty("ndlDate")) {
             this.#cursor.modifier.dateSalt = options.ndlDate;
+        }
+        if (options.hasOwnProperty("ndlSize")) {
+            this.#ndlSize = options.ndlSize;
+        }
+        if (options.hasOwnProperty("minCapitals")) {
+            this.#minCapitals = options.minCapitals;
+        }
+        if (options.hasOwnProperty("minDigits")) {
+            this.#minDigits = options.minDigits;
+        }
+        if (options.hasOwnProperty("minSymbols")) {
+            this.#minSymbols = options.minSymbols;
         }
 
         // Validate data
@@ -98,11 +115,12 @@ class Needl {
         // First create a salt from filename
         let saltAlpha = this.#filename.match(/[A-Za-z]/g);
         let saltDigits = this.#filename.match(/\d/g);
-        this.#cursor.modifier.multiplier = saltDigits.reduce((sum, val) => sum + parseInt(val, 10), 0);
+        // extract all digits from dateSalt if it exist, otherwise saltDate is an empty array
+        let saltDate = (this.#cursor.modifier.hasOwnProperty("dateSalt")) ? this.#cursor.modifier.dateSalt.match(/\d/g) : [];
+        // multiplier is the sum of each individual digit from saltDigits and saltDate
+        this.#cursor.modifier.multiplier = saltDigits.reduce((sum, val) => sum + parseInt(val, 10), 0) + saltDate.reduce((sum, val) => sum + parseInt(val, 10), 0);
 
-        let saltString = (this.#cursor.modifier.hasOwnProperty("dateSalt")) ? 
-            saltAlpha.reduce((sum, val) => sum + val, "") + saltDigits.reduce((sum, val) => sum + val, "") + this.#cursor.modifier.dateSalt : 
-            saltAlpha.reduce((sum, val) => sum + val, "") + saltDigits.reduce((sum, val) => sum + val, "");
+        let saltString = saltAlpha.reduce((sum, val) => sum + val, "") + saltDigits.reduce((sum, val) => sum + val, "") + saltDate.reduce((sum, val) => sum + val, "");
 
         // Create two unique salt strings, one for each passkey
         let [pk1Salt, pk2Salt] = [...saltString].reduce((result, char, i) => (result[i%2].push(char), result), [[],[]]);
@@ -153,6 +171,7 @@ class Needl {
         
         // Iterate pixels until satifying desired "needle" passcode length
         this.#cursor.iterator.count = 0;
+        // Will need to eventually move this loop into a separate own method
         while (this.#byteBuffer.length < this.#ndlSize) {
             // move cursor based on iterator position on x, y, and salt hashes
             let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
@@ -173,8 +192,65 @@ class Needl {
             }
         }
         
-        let byteArray = Uint8Array.from(this.#byteBuffer);
-        this.#needl = new TextDecoder().decode(byteArray.slice(0, this.#ndlSize));
+        // Byte buffer size has been fulfilled
+        let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlSize));
+        let tempNeedl = new TextDecoder().decode(byteArray);
+        console.log(tempNeedl);
+
+        // Validate required number of capital letters and digits
+        let capitalMatches = tempNeedl.match(/[A-Z]/g);
+        let digitMatches = tempNeedl.match(/[0-9]/g);
+        let symbolMatches = tempNeedl.match(/[\W_]/g);
+        console.log("Min capitals:  " + this.#minCapitals);
+        console.log("Capital letters:  " + capitalMatches.length);
+        console.log("Min digits:  " + this.#minDigits);
+        console.log("Digit count:  " + digitMatches.length);
+        console.log("Min symbols:  " + this.#minSymbols);
+        console.log("Symbol count:  " + symbolMatches.length);
+        // Re-iterate pixels until requirements are satified
+        while (tempNeedl.match(/[A-Z]/g).length < this.#minCapitals || tempNeedl.match(/[0-9]/g).length < this.#minDigits || tempNeedl.match(/[\W_]/g).length < this.#minSymbols) {
+            console.log("Missing string requirements");
+            
+            // move cursor based on iterator position on x, y, and salt hashes
+            let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
+            currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
+            currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
+            
+            // Get  3x3 pixel grid from image context
+            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3);
+            this.#parsePixelGrid(Array.from(pixelGrid.data));
+            this.#cursor.iterator.count++;
+
+            // Check the new byte buffer for needed value
+            for (let i = 0; i < this.#byteBuffer.length; i++) {
+                // Check for digits
+                if (tempNeedl.match(/[0-9]/g).length < this.#minDigits && (this.#byteBuffer[i] >= 48 && this.#byteBuffer[i] <= 57)) {
+                    // Found a digit
+                    console.log("found a digit");
+                    byteArray[this.#cursor.iterator.count % this.#ndlSize] = this.#byteBuffer[i];
+                }
+
+                // Check for capitals
+                if (tempNeedl.match(/[A-Z]/g).length < this.#minCapitals && (this.#byteBuffer[i] >= 65 && this.#byteBuffer[i] <= 90)) {
+                    // Found a capital
+                    console.log("found a capital");
+                    byteArray[this.#cursor.iterator.count % this.#ndlSize] = this.#byteBuffer[i];
+                }
+            }
+
+            tempNeedl = new TextDecoder().decode(byteArray);
+            // Clear the byteBuffer before next loop
+            this.#byteBuffer = [];
+
+            // Back up condition to break the loop with an error
+            //  TODO:  Improve this.
+            if (this.#cursor.iterator.count == 1000) {
+                console.log("had to break");
+                break;
+            }
+        }
+        // Requirements have been met in the tempNeedl, set the private class property
+        this.#needl = tempNeedl;
         
         // Clear the buffers
         this.#base11Buffer = [];
@@ -235,6 +311,10 @@ class Needl {
             
             for (var i = 0; i < fiveBytes.length; i++) {
                 let decValue = parseInt(fiveBytes[i], 16);
+                // Check byte value with allowed characters
+                // Alphabetical range:  [A-Z]
+                // Numeric range:  [0-9]
+                // Default symbols:
                 if (decValue >= 33 && decValue <= 126) {
                     this.#byteBuffer.push(decValue);
                 }
