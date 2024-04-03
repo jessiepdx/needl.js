@@ -206,6 +206,7 @@ class Needl {
             // Get  3x3 pixel grid from image context
             //  BUG:  iOS doesn't respect the colorspace and returns pixels values different from other systems
             let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3, { colorSpace: "display-p3" });
+            taConsole("\ncolorspace:  " + pixelGrid.colorSpace);
             //console.log(pixelGrid);
             //taConsole("\nPixel grid array:  " + pixelGrid.data);
             this.#parsePixelGrid(Array.from(pixelGrid.data));
