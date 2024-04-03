@@ -126,8 +126,16 @@ class Needl {
         }
         
         // Everything is valid - draw image in canvas and set properties
+        this.#canvas.width = image.naturalWidth;
+        this.#canvas.height = image.naturalHeight;
+        console.log("canvas width:  " + this.#canvas.width);
+        console.log("canvas width:  " + this.#canvas.height);
+        taConsole("\ncanvas width:  " + this.#canvas.width);
+        taConsole("\ncanvas width:  " + this.#canvas.height);
         this.#haystack.canvas.width = image.width;
         this.#haystack.canvas.height = image.height;
+        console.log("context width:  " + this.#haystack.canvas.width);
+        console.log("context height:  " + this.#haystack.canvas.height);
         this.#haystack.drawImage(image, 0, 0);
         this.#filename = fn;
         this.#passkey1 = pk1;
@@ -206,9 +214,11 @@ class Needl {
             currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
             currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
             
+            taConsole("\nX pos:  " + currentPos.x + "\nY pos:  " + currentPos.y);
+
             // Get  3x3 pixel grid from image context
             let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3);
-            taConsole(pixelGrid.data);
+            taConsole("\n" + pixelGrid.data);
             this.#parsePixelGrid(Array.from(pixelGrid.data));
             this.#cursor.iterator.count++;
             
@@ -373,7 +383,7 @@ class Needl {
     async #findNeedl() {
         await this.#makeHashes();
         this.#iteratePixels();
-        taConsole("pixels iterated");
+        //taConsole("pixels iterated");
 
         return this.#needl;
     }
