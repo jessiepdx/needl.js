@@ -70,7 +70,7 @@ class Needl {
 
     // Haystack and Needl
     #canvas = document.createElement("canvas");
-    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true });
+    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true, colorSpace: "srgb" });
     #cursor = { "start" : {}, "iterator" : {}, "modifier" : {} };
     #needl = "";
 
@@ -160,6 +160,7 @@ class Needl {
 
         // convert hash array data into 64 character string of hexidecimals
         this.#cursor.iterator.salt = salt_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        taConsole("\nSalt:  " + this.#cursor.iterator.salt);
         
 
         // Hash both passkeys
@@ -171,6 +172,7 @@ class Needl {
         // Set the x axis start point and iterator hash value
         this.#cursor.start.x = pk1_hashArray.reduce((sum, val) => sum + val, 0) % this.#canvas.width;
         this.#cursor.iterator.x = pk1_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        taConsole("\nX:  " + this.#cursor.iterator.x);
 
         // Y axis (passkey2)
         const pk2_charArray = new TextEncoder().encode(pk2SaltStr + this.#passkey2);
@@ -180,6 +182,7 @@ class Needl {
         // Set the y axis start point and iterator hash value
         this.#cursor.start.y = pk2_hashArray.reduce((sum, val) => sum + val, 0) % this.#canvas.height;
         this.#cursor.iterator.y = pk2_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        taConsole("\nY:  " + this.#cursor.iterator.y);
 
         if (salt_hashBuffer && pk1_hashBuffer && pk2_hashArray) {
             return true
