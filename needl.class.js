@@ -70,7 +70,8 @@ class Needl {
 
     // Haystack and Needl
     #canvas = document.createElement("canvas");
-    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true });
+    //#haystack = this.#canvas.getContext("2d", { willReadFrequently: true });
+    #haystack = this.#canvas.getContext("2d");
     #cursor = { "start" : {}, "iterator" : {}, "modifier" : {} };
     #needl = "";
 
@@ -136,6 +137,7 @@ class Needl {
         this.#haystack.canvas.height = image.height;
         console.log("context width:  " + this.#haystack.canvas.width);
         console.log("context height:  " + this.#haystack.canvas.height);
+        //  BUG:  iOS Safari may not being drawing the image to the context.
         this.#haystack.drawImage(image, 0, 0);
         this.#filename = fn;
         this.#passkey1 = pk1;
