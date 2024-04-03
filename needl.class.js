@@ -1,4 +1,19 @@
 /*
+Copyright (C) 2024  Jessie Wise
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 NEEDL:  A simple multikey password generator / manager - all from a photo
 CREATED:  2018
 UPDATED:  04/02/2024
@@ -139,9 +154,7 @@ class Needl {
 
         // Hash the salt string
         const salt_charArray = new TextEncoder().encode(saltString);
-        taConsole("trying first hash...");
         const salt_hashBuffer = await crypto.subtle.digest("SHA-256", salt_charArray);
-        taConsole(" first hash complete!\n");
         const salt_hashArray = Array.from(new Uint8Array(salt_hashBuffer));
 
         // convert hash array data into 64 character string of hexidecimals
@@ -152,7 +165,6 @@ class Needl {
         // X axis (passkey1)
         const pk1_charArray = new TextEncoder().encode(pk1SaltStr + this.#passkey1);
         const pk1_hashBuffer = await crypto.subtle.digest("SHA-256", pk1_charArray);
-        taConsole(" second hash complete!\n");
         const pk1_hashArray = Array.from(new Uint8Array(pk1_hashBuffer));
 
         // Set the x axis start point and iterator hash value
@@ -162,7 +174,6 @@ class Needl {
         // Y axis (passkey2)
         const pk2_charArray = new TextEncoder().encode(pk2SaltStr + this.#passkey2);
         const pk2_hashBuffer = await crypto.subtle.digest("SHA-256", pk2_charArray);
-        taConsole(" third hash complete!\n");
         const pk2_hashArray = Array.from(new Uint8Array(pk2_hashBuffer));
 
         // Set the y axis start point and iterator hash value
@@ -182,11 +193,14 @@ class Needl {
         let currentPos = { 
             "x" : (this.#cursor.start.x * this.#cursor.modifier.multiplier) % this.#canvas.width, 
             "y" : (this.#cursor.start.y * this.#cursor.modifier.multiplier) % this.#canvas.height };
+        taConsole("\ncanvas width:  " + this.#canvas.width);
+        taConsole("\ncanvas height:  " + this.#canvas.height);
         
         // Iterate pixels until satifying desired "needle" passcode length
         this.#cursor.iterator.count = 0;
         // Will need to eventually move this loop into a separate own method
-        while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
+        // while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
+        while (this.#cursor.iterator.count < 1) {
             // move cursor based on iterator position on x, y, and salt hashes
             let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
             currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
@@ -194,7 +208,7 @@ class Needl {
             
             // Get  3x3 pixel grid from image context
             let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3);
-            //console.log(pixelGrid);
+            taConsole(pixelGrid.data);
             this.#parsePixelGrid(Array.from(pixelGrid.data));
             this.#cursor.iterator.count++;
             
@@ -205,7 +219,7 @@ class Needl {
                 break;
             }
         }
-        
+        /*
         // Byte buffer size has been fulfilled
         let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlOptions.ndlSize));
         let tempNeedl = new TextDecoder().decode(byteArray);
@@ -222,7 +236,7 @@ class Needl {
         console.log("Digit count:  " + digitMatches.length);
         console.log("Min symbols:  " + this.#ndlOptions.minSymbols);
         console.log("Symbol count:  " + symbolMatches.length);
-        */
+        /
 
         // Re-iterate pixels until requirements are satified
         while (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals || tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits || tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols) {
@@ -280,6 +294,7 @@ class Needl {
         }
         // Requirements have been met in the tempNeedl, set the private class property "needl"
         this.#needl = tempNeedl;
+        */
         
         // Clear the buffers
         this.#base11Buffer = [];
@@ -357,7 +372,6 @@ class Needl {
 
     async #findNeedl() {
         await this.#makeHashes();
-        taConsole("hashes made");
         this.#iteratePixels();
         taConsole("pixels iterated");
 
