@@ -70,8 +70,7 @@ class Needl {
 
     // Haystack and Needl
     #canvas = document.createElement("canvas");
-    //#haystack = this.#canvas.getContext("2d", { willReadFrequently: true });
-    #haystack = this.#canvas.getContext("2d");
+    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true });
     #cursor = { "start" : {}, "iterator" : {}, "modifier" : {} };
     #needl = "";
 
@@ -105,7 +104,6 @@ class Needl {
         // Basic regular expression check
         let pk_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}$/;
         let fn_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}(.jpe?g|.gif|.png|.bmp)$/;
-        taConsole("\nfilename received:  " + fn);
         
         // test for required arguments
         if (!image || !pk1 || !pk2) {
@@ -128,17 +126,9 @@ class Needl {
         }
         
         // Everything is valid - draw image in canvas and set properties
-        this.#canvas.width = image.naturalWidth;
-        this.#canvas.height = image.naturalHeight;
-        console.log("canvas width:  " + this.#canvas.width);
-        console.log("canvas width:  " + this.#canvas.height);
-        taConsole("\ncanvas width:  " + this.#canvas.width);
-        taConsole("\ncanvas width:  " + this.#canvas.height);
         this.#haystack.canvas.width = image.width;
         this.#haystack.canvas.height = image.height;
-        console.log("context width:  " + this.#haystack.canvas.width);
-        console.log("context height:  " + this.#haystack.canvas.height);
-        //  BUG:  iOS Safari may not being drawing the image to the context.
+        //  BUG:  iOS "jpg" from HEIC may not being drawing the image to the context.
         this.#haystack.drawImage(image, 0, 0);
         this.#filename = fn;
         this.#passkey1 = pk1;
@@ -204,24 +194,18 @@ class Needl {
         let currentPos = { 
             "x" : (this.#cursor.start.x * this.#cursor.modifier.multiplier) % this.#canvas.width, 
             "y" : (this.#cursor.start.y * this.#cursor.modifier.multiplier) % this.#canvas.height };
-        taConsole("\ncanvas width:  " + this.#canvas.width);
-        taConsole("\ncanvas height:  " + this.#canvas.height);
         
         // Iterate pixels until satifying desired "needle" passcode length
         this.#cursor.iterator.count = 0;
         // Will need to eventually move this loop into a separate own method
-        // while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
-        while (this.#cursor.iterator.count < 1) {
+        while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
             // move cursor based on iterator position on x, y, and salt hashes
             let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
             currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
             currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
-            
-            taConsole("\nX pos:  " + currentPos.x + "\nY pos:  " + currentPos.y);
 
             // Get  3x3 pixel grid from image context
             let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3);
-            taConsole("\n" + pixelGrid.data);
             this.#parsePixelGrid(Array.from(pixelGrid.data));
             this.#cursor.iterator.count++;
             
@@ -232,7 +216,7 @@ class Needl {
                 break;
             }
         }
-        /*
+
         // Byte buffer size has been fulfilled
         let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlOptions.ndlSize));
         let tempNeedl = new TextDecoder().decode(byteArray);
@@ -249,7 +233,7 @@ class Needl {
         console.log("Digit count:  " + digitMatches.length);
         console.log("Min symbols:  " + this.#ndlOptions.minSymbols);
         console.log("Symbol count:  " + symbolMatches.length);
-        /
+        */
 
         // Re-iterate pixels until requirements are satified
         while (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals || tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits || tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols) {
@@ -307,7 +291,6 @@ class Needl {
         }
         // Requirements have been met in the tempNeedl, set the private class property "needl"
         this.#needl = tempNeedl;
-        */
         
         // Clear the buffers
         this.#base11Buffer = [];
@@ -386,7 +369,6 @@ class Needl {
     async #findNeedl() {
         await this.#makeHashes();
         this.#iteratePixels();
-        //taConsole("pixels iterated");
 
         return this.#needl;
     }
