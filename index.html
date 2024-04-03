@@ -17,7 +17,6 @@
         // Callback function for "haystack" Image
         haystack.onload = function (event) {
             taConsole(" loaded!\n");
-            //taConsole(this.src.slice(0,1000));
             document.getElementById("processBtn").disabled = false;
         }
 
@@ -33,7 +32,6 @@
 
         function makeNeedl(btn) {
             let f = btn.form;
-            taConsole("Processing...\n", true);
             let imageFile = f.photoFile.files[0];
             // gather image, passkeys, and options
             let pk1 = f.passkey1.value;
@@ -56,23 +54,19 @@
 
             // If the haystack (image) is loaded, pass the haystack, filename, and passkeys
             if (haystack.complete) {
-                taConsole("Creating Needl Object...");
                 let ndl = new Needl(haystack, fn, pk1, pk2, options);
                 if (ndl.invalid) {
                     console.log(ndl.errMsg);
-                    taConsole(" an error occured\n");
                     return;
                 }
-                taConsole(" Complete!\n");
                 
                 // needl getter method returns a promise
-                taConsole("Finding Needl passkey...");
                 const n = ndl.needl;
                 n.then((r) => {
                     console.log(r);
                     console.log(r.length);
                     console.log(ndl.results);
-                    taConsole("\nNeedl:\n" + r);
+                    taConsole(r, true);
                     document.getElementById("copyNdlBtn").disabled = false;
                 });
             }
