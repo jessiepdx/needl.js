@@ -40,6 +40,7 @@
             let fn = imageFile.name;
             let options = {};
 
+
             // Handle configuration options
             // for every option in needl_defaults set options if the value was changed from default
             for (const opt in needl_defaults) {
@@ -58,6 +59,7 @@
                 taConsole(" Complete!\n");
                 
                 taConsole("Creating Needl Object...");
+                taConsole("\nfilename sent:  " + fn);
                 let ndl = new Needl(haystack, fn, pk1, pk2, options);
                 if (ndl.invalid) {
                     taConsole(ndl.errMsg);
