@@ -223,6 +223,7 @@ class Needl {
         let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlOptions.ndlSize));
         taConsole("\nByteArray:  " + byteArray);
         let tempNeedl = new TextDecoder().decode(byteArray);
+        taConsole("\ntemp Needl:  " + tempNeedl);
         console.log(tempNeedl);
 
         // Validate required number of capital letters and digits
@@ -351,7 +352,7 @@ class Needl {
         }
         if (valuesString.length == 10) {
             let fiveBytes = valuesString.match(/([a-f\d]{2})/g);
-            taConsole("\nFive bytes:  " + fiveBytes);
+            //taConsole("\nFive bytes:  " + fiveBytes);
             for (var i = 0; i < fiveBytes.length; i++) {
                 let decValue = parseInt(fiveBytes[i], 16);
                 // Check byte value with allowed characters
