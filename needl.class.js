@@ -70,7 +70,7 @@ class Needl {
 
     // Haystack and Needl
     #canvas = document.createElement("canvas");
-    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true, colorSpace: "display-p3" });
+    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true, colorSpace: "srgb" });
     #cursor = { "start" : {}, "iterator" : {}, "modifier" : {} };
     #needl = "";
 
@@ -205,27 +205,22 @@ class Needl {
             
             // Get  3x3 pixel grid from image context
             //  BUG:  iOS doesn't respect the colorspace and returns pixels values different from other systems
-            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3, { colorSpace: "display-p3" });
-            taConsole("\ncolorspace:  " + pixelGrid.colorSpace);
-            //console.log(pixelGrid);
-            //taConsole("\nPixel grid array:  " + pixelGrid.data);
+            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3, { colorSpace: "srgb" });
             this.#parsePixelGrid(Array.from(pixelGrid.data));
             this.#cursor.iterator.count++;
             
             // Back up condition to break the loop with an error
             //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
-                taConsole("had to break while loop");
-                console.log("had to break");
+                taConsole("force loop break, while loop at 1000 iterations");
+                console.log("force loop break, while loop at 1000 iterations");
                 break;
             }
         }
         
         // Byte buffer size has been fulfilled
         let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlOptions.ndlSize));
-        taConsole("\nByteArray:  " + byteArray);
         let tempNeedl = new TextDecoder().decode(byteArray);
-        taConsole("\ntemp Needl:  " + tempNeedl);
         console.log(tempNeedl);
 
         // Validate required number of capital letters and digits
@@ -291,8 +286,8 @@ class Needl {
             // Back up condition to break the loop with an error
             //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
-                taConsole("had to break while loop");
-                console.log("had to break");
+                taConsole("force loop break, while loop at 1000 iterations");
+                console.log("force loop break, while loop at 1000 iterations");
                 break;
             }
         }
@@ -355,7 +350,6 @@ class Needl {
         }
         if (valuesString.length == 10) {
             let fiveBytes = valuesString.match(/([a-f\d]{2})/g);
-            //taConsole("\nFive bytes:  " + fiveBytes);
             for (var i = 0; i < fiveBytes.length; i++) {
                 let decValue = parseInt(fiveBytes[i], 16);
                 // Check byte value with allowed characters
