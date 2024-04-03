@@ -1,13 +1,13 @@
 /*
 NEEDL:  A simple multikey password generator / manager - all from a photo
 CREATED:  2018
-UPDATED:  03/27/2024
-VERSION:  0.1.1b
+UPDATED:  04/02/2024
+VERSION:  0.1.3b
 ABOUT:
     Using two simple passkeys and the photo filename to generate a hashing salt, Needl creates three unique hashes. 
     One for the x axis, one for the y axis, and one as a modififer. Think of a photo as a large two dimensional map of pixels. 
     Needl navigates through that map using coordinates that only your unique hashes can generate.
-    Using the pixels at those unique coordinates, Needl calculates its own unique passkey signature. 
+    Using the pixels at those unique coordinates, Needl's algorithm calculates its own unique passkey signature. 
     Now anytime you need to retrieve that passkey, you just need that photo, and your two passkeys.
     Example:
         Photo00179.jpg (this string itself is a part of salt string)
@@ -20,12 +20,32 @@ ABOUT:
 
     For more information, visit:  https://github.com/jessiepdx/needl.js
 NOTES:
-    Considering making all methods private and a single public async method that returns the needl string in a promise
+    
 TODO:
-    Validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
-    check for options argument object and set options accordingly (including datetime for salting)
-    add encoding methods
+    Improved validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
+    Add an array that contains all acceptable characters in byte value to check for valid bytes to return to the byte array
+    Separate out iteratePixels and create buildNeedl (which will call iteratePixels and validate the string)
+    Add a second argument to iteratePixels that takes an array of acceptable byte values to add to the byte array
+    Add encoding method (in version 2)
 */
+
+// Available outside of the class for accessing by UI inputs
+//  TODO:  Set all these up correctly
+const symbol_sets = {
+    "full" : "!@#$%^&*()-_+=`~.,<>/?\";:[]{}",
+    "partial" : "",
+    "minimal" : ""
+};
+
+// Defaults set here overwrite the Needl class defaults.
+const needl_defaults = {
+    "ndlSize" : 128,
+    "minCapitals" : 1,
+    "minDigits" : 1,
+    "minSymbols" : 1,
+    "allowedSymbols" : symbol_sets.full
+};
+
 class Needl {
     // Keys and Salt
     #passkey1;
@@ -48,42 +68,26 @@ class Needl {
     #totalNotValid = 0;
 
     // Options
-    #ndlSize = 128;
-    #minCapitals = 1;
-    #minDigits = 1;
-    #minSymbols = 1;
-    #allowedSymbols = Array.from("!@#$%^&*()-_+=`~.,<>/?\";:[]{}", val => val.charCodeAt(0));
-    
+    #ndlOptions = {
+        "ndlSize" : 128,
+        "minCapitals" : 1,
+        "minDigits" : 1,
+        "minSymbols" : 1,
+        "allowedSymbols" : "!@#$%^&*()-_+=`~.,<>/?\";:[]{}"
+    };
 
     // haystack is an image file; filename, pk1, and pk2 are strings; options is a key-value pair collection (not required)
     constructor(image, fn, pk1, pk2, options = {}) {
-        console.log(this.#allowedSymbols);
-        // Check for and uppack options here
-        //  NOTE:  Seems like looping over the options object and checking if this (instance of needl) hasOwnProperty
-        //         would be more efficent than a bunch of if statements
+        // Merge options with needl_defaults and overwrite with assigned values
+        this.#ndlOptions = {...needl_defaults, ...options};
+        // Add the date modifier if set in options
         if (options.hasOwnProperty("ndlDate")) {
             this.#cursor.modifier.dateSalt = options.ndlDate;
-        }
-        if (options.hasOwnProperty("ndlSize")) {
-            this.#ndlSize = options.ndlSize;
-        }
-        if (options.hasOwnProperty("minCapitals")) {
-            this.#minCapitals = options.minCapitals;
-        }
-        if (options.hasOwnProperty("minDigits")) {
-            this.#minDigits = options.minDigits;
-        }
-        if (options.hasOwnProperty("minSymbols")) {
-            this.#minSymbols = options.minSymbols;
-        }
-        if (options.hasOwnProperty("allowedSymbols")) {
-            this.#allowedSymbols = Array.from(options.allowedSymbols, val => val.charCodeAt(0));
         }
 
         // Validate data
         // Basic regular expression check
         let pk_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}$/;
-        // let fn_regExp = /^([A-Za-z\d]+( -\.[A-Za-z\d])+)\.(?:jpe?g|gif|png)$/i;
         let fn_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}(.jpe?g|.gif|.png|.bmp)$/;
         
         // test for required arguments
@@ -102,10 +106,11 @@ class Needl {
 
         // test for minimum pixel count
         //  TODO:  will improve this later
-        if (image.width * image.height < this.#ndlSize * 1000) {
+        if (image.width * image.height < this.#ndlOptions.ndlSize * 1000 * 9) {
             return { "invalid" : true, "errMsg" : "not enough pixels in this image" };
         }
         
+        // Everything is valid - draw image in canvas and set properties
         this.#haystack.canvas.width = image.width;
         this.#haystack.canvas.height = image.height;
         this.#haystack.drawImage(image, 0, 0);
@@ -177,7 +182,7 @@ class Needl {
         // Iterate pixels until satifying desired "needle" passcode length
         this.#cursor.iterator.count = 0;
         // Will need to eventually move this loop into a separate own method
-        while (this.#byteBuffer.length < this.#ndlSize) {
+        while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
             // move cursor based on iterator position on x, y, and salt hashes
             let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
             currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
@@ -198,22 +203,25 @@ class Needl {
         }
         
         // Byte buffer size has been fulfilled
-        let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlSize));
+        let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlOptions.ndlSize));
         let tempNeedl = new TextDecoder().decode(byteArray);
         console.log(tempNeedl);
 
         // Validate required number of capital letters and digits
+        /* DISPLAY FOR DEBUGGING
         let capitalMatches = tempNeedl.match(/[A-Z]/g);
         let digitMatches = tempNeedl.match(/[0-9]/g);
         let symbolMatches = tempNeedl.match(/[\W_]/g);
-        console.log("Min capitals:  " + this.#minCapitals);
+        console.log("Min capitals:  " + this.#ndlOptions.minCapitals);
         console.log("Capital letters:  " + capitalMatches.length);
-        console.log("Min digits:  " + this.#minDigits);
+        console.log("Min digits:  " + this.#ndlOptions.minDigits);
         console.log("Digit count:  " + digitMatches.length);
-        console.log("Min symbols:  " + this.#minSymbols);
+        console.log("Min symbols:  " + this.#ndlOptions.minSymbols);
         console.log("Symbol count:  " + symbolMatches.length);
+        */
+
         // Re-iterate pixels until requirements are satified
-        while (tempNeedl.match(/[A-Z]/g).length < this.#minCapitals || tempNeedl.match(/[0-9]/g).length < this.#minDigits || tempNeedl.match(/[\W_]/g).length < this.#minSymbols) {
+        while (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals || tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits || tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols) {
             console.log("Missing string requirements");
             
             // move cursor based on iterator position on x, y, and salt hashes
@@ -229,27 +237,32 @@ class Needl {
             // Check the new byte buffer for needed value
             for (let i = 0; i < this.#byteBuffer.length; i++) {
                 // Check for digits
-                if (tempNeedl.match(/[0-9]/g).length < this.#minDigits && (this.#byteBuffer[i] >= 48 && this.#byteBuffer[i] <= 57)) {
+                if (tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits && (this.#byteBuffer[i] >= 48 && this.#byteBuffer[i] <= 57)) {
                     // Found a digit
                     console.log("found a digit");
-                    byteArray[this.#cursor.iterator.count % this.#ndlSize] = this.#byteBuffer[i];
+                    // Add found digit to byteArray in a specific position
+                    byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
                 }
 
                 // Check for capitals
-                if (tempNeedl.match(/[A-Z]/g).length < this.#minCapitals && (this.#byteBuffer[i] >= 65 && this.#byteBuffer[i] <= 90)) {
+                if (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals && (this.#byteBuffer[i] >= 65 && this.#byteBuffer[i] <= 90)) {
                     // Found a capital
                     console.log("found a capital");
-                    byteArray[this.#cursor.iterator.count % this.#ndlSize] = this.#byteBuffer[i];
+                    // Add found capital to byteArray in a specific position
+                    byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
                 }
                 
-                // Check for symbols
-                if (tempNeedl.match(/[\W_]/g).length < this.#minSymbols && this.#allowedSymbols.includes(this.#byteBuffer[i])) {
+                // Check for symbols 
+                let allowedSymbolsArray = Array.from(this.#ndlOptions.allowedSymbols, val => val.charCodeAt(0));
+                if (tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols && allowedSymbolsArray.includes(this.#byteBuffer[i])) {
                     // Found a symbol
                     console.log("found a symbol");
-                    byteArray[this.#cursor.iterator.count % this.#ndlSize] = this.#byteBuffer[i];
+                    // Add found symbol to byteArray in a specific position
+                    byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
                 }
             }
 
+            // Rebuild the tempNeedl string
             tempNeedl = new TextDecoder().decode(byteArray);
             // Clear the byteBuffer before next loop
             this.#byteBuffer = [];
@@ -261,7 +274,7 @@ class Needl {
                 break;
             }
         }
-        // Requirements have been met in the tempNeedl, set the private class property
+        // Requirements have been met in the tempNeedl, set the private class property "needl"
         this.#needl = tempNeedl;
         
         // Clear the buffers
@@ -327,7 +340,8 @@ class Needl {
                 // Alphabetical range:  [A-Z] ASCII(65-90) and [a-z] ASCII(97-122)
                 // Numeric range:  [0-9] ASCII(48-57)
                 // Default symbols:
-                if (decValue >= 65 && decValue <= 90 || decValue >= 97 && decValue <= 122 || decValue >= 48 && decValue <= 57 || this.#allowedSymbols.includes(decValue)) {
+                let allowedSymbolsArray = Array.from(this.#ndlOptions.allowedSymbols, val => val.charCodeAt(0));
+                if (decValue >= 65 && decValue <= 90 || decValue >= 97 && decValue <= 122 || decValue >= 48 && decValue <= 57 || allowedSymbolsArray.includes(decValue)) {
                     this.#byteBuffer.push(decValue);
                 }
             }
@@ -345,12 +359,11 @@ class Needl {
     }
 
     get results() {
-        
         return { "iterations" : this.#cursor.iterator.count, "valid" : this.#totalValid / 3, "invalid" : this.#totalNotValid / 3, "totalPixels" : this.#canvas.width * this.#canvas.height };
     }
 
     get needl() {
-        if (this.#needl.length != this.#ndlSize) {
+        if (this.#needl.length != this.#ndlOptions.ndlSize) {
             // returns a promise to resolve value
             return this.#findNeedl();
         }
@@ -360,8 +373,4 @@ class Needl {
         }
         
     }
-    //  TODO:  Add two more getters:
-    //  one to get regular expressions for fields for checking values in the UI
-    //  and one to get the default values for options for setting up forms in UI
-    //  These should be a class method and not instance method?
 }
