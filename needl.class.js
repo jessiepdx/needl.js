@@ -211,7 +211,7 @@ class Needl {
             // Get  3x3 pixel grid from image context
             let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3, { colorSpace: "srgb" });
             //console.log(pixelGrid);
-            //taConsole("\n" + pixelGrid.data)
+            taConsole("\nPixel grid array:  " + pixelGrid.data);
             this.#parsePixelGrid(Array.from(pixelGrid.data));
             this.#cursor.iterator.count++;
             
@@ -355,7 +355,7 @@ class Needl {
         }
         if (valuesString.length == 10) {
             let fiveBytes = valuesString.match(/([a-f\d]{2})/g);
-            
+            taConsole("\nFive bytes:  " + fiveBytes);
             for (var i = 0; i < fiveBytes.length; i++) {
                 let decValue = parseInt(fiveBytes[i], 16);
                 // Check byte value with allowed characters
