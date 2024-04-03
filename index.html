@@ -1,7 +1,219 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script src="<!DOCTYPE html>
+<html>
+<head>
     <script src="needl.class.js"></script>
+    <script>
+        let haystack = new Image();
+
+        function taConsole(str, clear = false) {
+            let tac = document.querySelector("textarea");
+            if (clear == true) {
+                tac.innerText = "";
+            }
+            let text =  (' ' + tac.innerHTML).slice(1);
+            tac.innerHTML = text + str;
+        }
+
+        // Callback function for "haystack" Image
+        haystack.onload = function (event) {
+            taConsole(" loaded!\n");
+            document.getElementById("processBtn").disabled = false;
+        }
+
+        function toggleVisibility(input) {
+            let f = input.form;
+            let toggles = f.querySelectorAll("label.pwdShowHide");
+            for (let i = 0; i < toggles.length; i++) {
+                toggles[i].innerHTML = (input.checked) ? "&#x1F929;" : "&#x1F910;";
+            }
+            document.getElementById("passkey1").type = (input.checked) ? "text" : "password";
+            document.getElementById("passkey2").type = (input.checked) ? "text" : "password";
+        }
+
+        function makeNeedl(btn) {
+            let f = btn.form;
+            taConsole("Processing...\n", true);
+            let imageFile = f.photoFile.files[0];
+            // gather image, passkeys, and options
+            let pk1 = f.passkey1.value;
+            let pk2 = f.passkey2.value;
+            let fn = imageFile.name;
+            let options = {};
+
+            // Handle configuration options
+            // for every option in needl_defaults set options if the value was changed from default
+            for (const opt in needl_defaults) {
+                if (f[opt].value != f[opt].dataset.default) {
+                    options[opt] = f[opt].value;
+                }
+            }
+            // Set date value if changed
+            if (f.ndlDate.value != "") {
+                opt.ndlDate = f.ndlDate.value;
+            }
+
+            // If the haystack (image) is loaded, pass the haystack, filename, and passkeys
+            taConsole("Loading image file...");
+            if (haystack.complete) {
+                taConsole(" Complete!\n");
+                
+                taConsole("Creating Needl Object...");
+                let ndl = new Needl(haystack, fn, pk1, pk2, options);
+                if (ndl.invalid) {
+                    console.log(ndl.errMsg);
+                    taConsole(" an error occured\n");
+                    return;
+                }
+                taConsole(" Complete!\n");
+                
+                // needl getter method returns a promise
+                taConsole("Finding Needl passkey...");
+                const n = ndl.needl;
+                n.then((r) => {
+                    console.log(r);
+                    console.log(r.length);
+                    console.log(ndl.results);
+                    taConsole(r, true);
+                    document.getElementById("copyNdlBtn").disabled = false;
+                });
+            }
+
+        }
+
+        // Load image as soon as possible, before submitting passkeys
+        function loadImage(imageFile) {
+            taConsole("Loading image...");
+            let f = imageFile.form;
+            let file = imageFile.files[0];
+            let reader  = new FileReader();
+            let imageBtn = document.getElementById("photo");
+
+            // Callback function for File Reader
+            reader.onloadend = function (data) {
+                haystack.src = reader.result;
+                imageBtn.style.backgroundImage = "url('" + reader.result + "')";
+            }
+            
+            reader.readAsDataURL(file);
+        }
+
+        function uiLoaded() {
+            // Set the default values for the form
+            let f = document.querySelector("form");
+            for (const opt in needl_defaults) {
+                f[opt].value = needl_defaults[opt];
+                f[opt].dataset.default = needl_defaults[opt];
+            }
+        }
+    </script>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <style>
+        body {
+            margin: 0px;
+            background-color: lightgray;
+        }
+        header {
+            background-color: aqua;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        input, textarea {
+            font-size: 14pt;
+            padding: 4px;
+        }
+        label.above {
+            font-size: 10pt;
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        section {
+            display: flex;
+            flex-wrap: wrap;
+            row-gap: 10px;
+            column-gap: 10px;
+            width: inherit;
+        }
+        div#container {
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            min-width: 375px;
+            max-width: 840px;
+            padding: 5px;
+            border: 1px solid rgb(255, 145, 0);
+        }
+        section div {
+            border-radius: 3px;
+            padding: 10px;
+            flex-grow: 1;
+            /*min-width: 200px;*/
+        }
+        #photo {
+            background-color: white;
+            background-size: cover;
+        }
+        #photo label {
+            cursor: pointer;
+            display: block;
+            min-width: 300px;
+            background-color: aliceblue;
+        }
+        #passkeys {
+            background-color: white;
+        }
+        #settings {
+            background-color: white;
+        }
+        #needl {
+            background-color: white;
+        }
+        .pwdShowHide { 
+            cursor: pointer;
+        }
+    </style>
+    <meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>UI</title>
+</head>
+<body onload="uiLoaded();">
+	<div id="container">
+        <header>Needl</header>
+        <form>
+        <section>
+            <div id="photo">
+                <label for="photoFile">Select a photo</label>
+                <input type="file" id="photoFile" name="photoFile" hidden="true" onchange="loadImage(this);" />
+            </div>
+            <div id="passkeys">
+                <input type="text" id="passkey1" name="passkey1" placeholder="Passkey One" /><label class="pwdShowHide" for="switchVisibility">&#x1F929;</label><br />
+                <input type="text" id="passkey2" name="passkey2" placeholder="Passkey Two" /><label class="pwdShowHide" for="switchVisibility">&#x1F929;</label><br />
+                <input type="checkbox" id="switchVisibility" name="switchVisibility" onchange="toggleVisibility(this);" checked="true" hidden="true" />
+                Modifier
+                <label class="above" for="ndlDate">Date:  </label><input type="date" id="ndlDate" name="ndlDate" /><br />
+            </div>
+            <div id="settings">
+                <label class="above" for="ndlCount">Needl Count</label><input type="number" id="ndlCount" name="ndlCount" min="1" max="4" step="1" value="1" disabled="true" /><br />
+                <label class="above" for="ndlSize">Size:  </label><input type="number" id="ndlSize" name="ndlSize" min="32" max="256" step="16" value="128" /><br />
+                <label class="above" for="minCapitals">Minimum Caps:</label><input type="number" id="minCapitals" name="minCapitals" min="1" max="4" step="1" value="1" /><br />
+                <label class="above" for="minDigits">Minimum Digits:</label><input type="number" id="minDigits" name="minDigits" min="1" max="4" step="1" value="1" /><br />
+                <label class="above" for="minSymbols">Minimum Symbols:</label><input type="number" id="minSymbols" name="minSymbols" min="1" max="4" step="1" value="1" /><br />
+                <label class="above" for="allowedSymbols">Symbols:  </label><input type="text" id="allowedSymbols" name="allowedSymbols" placeholder="!@#$%^*()_-+=.,>;:" /><br />
+                <button type="button" id="processBtn" onclick="makeNeedl(this);" disabled="true">Process</button>
+            </div>
+            <div id="needl">
+                <textarea id="ndlDisplay" name="ndlDisplay" cols="32" rows="4"></textarea><br />
+                <button type="button" id="copyNdlBtn" disabled="true">Copy</button>
+            </div>
+        </section>
+        </form>
+    </div>
+</body>
+</html>"></script>
     <script>
         let haystack = new Image();
 
