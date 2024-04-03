@@ -60,7 +60,7 @@
                 taConsole("Creating Needl Object...");
                 let ndl = new Needl(haystack, fn, pk1, pk2, options);
                 if (ndl.invalid) {
-                    console.log(ndl.errMsg);
+                    taConsole(ndl.errMsg);
                     taConsole(" an error occured\n");
                     return;
                 }
