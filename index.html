@@ -54,15 +54,11 @@
             }
 
             // If the haystack (image) is loaded, pass the haystack, filename, and passkeys
-            taConsole("Loading image file...");
             if (haystack.complete) {
-                taConsole(" Complete!\n");
-                
                 taConsole("Creating Needl Object...");
-                taConsole("\nfilename sent:  " + fn);
                 let ndl = new Needl(haystack, fn, pk1, pk2, options);
                 if (ndl.invalid) {
-                    taConsole(ndl.errMsg);
+                    console.log(ndl.errMsg);
                     taConsole(" an error occured\n");
                     return;
                 }
@@ -75,9 +71,12 @@
                     console.log(r);
                     console.log(r.length);
                     console.log(ndl.results);
-                    //taConsole(r, true);
+                    taConsole(r, true);
                     document.getElementById("copyNdlBtn").disabled = false;
                 });
+            }
+            else {
+                taConsole("Image not loaded, try again");
             }
 
         }
