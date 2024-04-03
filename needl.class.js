@@ -105,6 +105,7 @@ class Needl {
         // Basic regular expression check
         let pk_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}$/;
         let fn_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}(.jpe?g|.gif|.png|.bmp)$/;
+        taConsole("\nfilename received:  " + fn);
         
         // test for required arguments
         if (!image || !pk1 || !pk2) {
