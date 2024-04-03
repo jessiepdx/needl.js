@@ -215,6 +215,7 @@ class Needl {
             // Back up condition to break the loop with an error
             //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
+                taConsole("had to break while loop");
                 console.log("had to break");
                 break;
             }
@@ -290,6 +291,7 @@ class Needl {
             // Back up condition to break the loop with an error
             //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
+                taConsole("had to break while loop");
                 console.log("had to break");
                 break;
             }
