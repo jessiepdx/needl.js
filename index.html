@@ -17,6 +17,7 @@
         // Callback function for "haystack" Image
         haystack.onload = function (event) {
             taConsole(" loaded!\n");
+            taConsole(this.src.slice(0,1000));
             document.getElementById("processBtn").disabled = false;
         }
 
