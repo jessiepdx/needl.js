@@ -70,7 +70,7 @@ class Needl {
 
     // Haystack and Needl
     #canvas = document.createElement("canvas");
-    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true, colorSpace: "srgb" });
+    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true, colorSpace: "display-p3" });
     #cursor = { "start" : {}, "iterator" : {}, "modifier" : {} };
     #needl = "";
 
@@ -160,8 +160,6 @@ class Needl {
 
         // convert hash array data into 64 character string of hexidecimals
         this.#cursor.iterator.salt = salt_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        taConsole("\nSalt:  " + this.#cursor.iterator.salt);
-        
 
         // Hash both passkeys
         // X axis (passkey1)
@@ -172,7 +170,6 @@ class Needl {
         // Set the x axis start point and iterator hash value
         this.#cursor.start.x = pk1_hashArray.reduce((sum, val) => sum + val, 0) % this.#canvas.width;
         this.#cursor.iterator.x = pk1_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        taConsole("\nX:  " + this.#cursor.iterator.x);
 
         // Y axis (passkey2)
         const pk2_charArray = new TextEncoder().encode(pk2SaltStr + this.#passkey2);
@@ -182,7 +179,6 @@ class Needl {
         // Set the y axis start point and iterator hash value
         this.#cursor.start.y = pk2_hashArray.reduce((sum, val) => sum + val, 0) % this.#canvas.height;
         this.#cursor.iterator.y = pk2_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        taConsole("\nY:  " + this.#cursor.iterator.y);
 
         if (salt_hashBuffer && pk1_hashBuffer && pk2_hashArray) {
             return true
@@ -202,16 +198,16 @@ class Needl {
         this.#cursor.iterator.count = 0;
         // Will need to eventually move this loop into a separate own method
         while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
-            //while (this.#cursor.iterator.count < 1) {
             // move cursor based on iterator position on x, y, and salt hashes
             let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
             currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
             currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
-            taConsole("\nX pos:  " + currentPos.x + " / Y pos:  " + currentPos.y);
+            
             // Get  3x3 pixel grid from image context
-            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3, { colorSpace: "srgb" });
+            //  BUG:  iOS doesn't respect the colorspace and returns pixels values different from other systems
+            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3, { colorSpace: "display-p3" });
             //console.log(pixelGrid);
-            taConsole("\nPixel grid array:  " + pixelGrid.data);
+            //taConsole("\nPixel grid array:  " + pixelGrid.data);
             this.#parsePixelGrid(Array.from(pixelGrid.data));
             this.#cursor.iterator.count++;
             
