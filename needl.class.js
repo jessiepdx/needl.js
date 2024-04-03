@@ -152,6 +152,7 @@ class Needl {
         // X axis (passkey1)
         const pk1_charArray = new TextEncoder().encode(pk1SaltStr + this.#passkey1);
         const pk1_hashBuffer = await crypto.subtle.digest("SHA-256", pk1_charArray);
+        taConsole(" second hash complete!\n");
         const pk1_hashArray = Array.from(new Uint8Array(pk1_hashBuffer));
 
         // Set the x axis start point and iterator hash value
@@ -161,6 +162,7 @@ class Needl {
         // Y axis (passkey2)
         const pk2_charArray = new TextEncoder().encode(pk2SaltStr + this.#passkey2);
         const pk2_hashBuffer = await crypto.subtle.digest("SHA-256", pk2_charArray);
+        taConsole(" third hash complete!\n");
         const pk2_hashArray = Array.from(new Uint8Array(pk2_hashBuffer));
 
         // Set the y axis start point and iterator hash value
@@ -355,7 +357,9 @@ class Needl {
 
     async #findNeedl() {
         await this.#makeHashes();
+        taConsole("hashes made");
         this.#iteratePixels();
+        taConsole("pixels iterated");
 
         return this.#needl;
     }
