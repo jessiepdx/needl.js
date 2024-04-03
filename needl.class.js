@@ -139,7 +139,9 @@ class Needl {
 
         // Hash the salt string
         const salt_charArray = new TextEncoder().encode(saltString);
+        taConsole("trying first hash...");
         const salt_hashBuffer = await crypto.subtle.digest("SHA-256", salt_charArray);
+        taConsole(" first hash complete!\n");
         const salt_hashArray = Array.from(new Uint8Array(salt_hashBuffer));
 
         // convert hash array data into 64 character string of hexidecimals
