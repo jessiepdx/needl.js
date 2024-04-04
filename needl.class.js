@@ -16,26 +16,24 @@ Copyright (C) 2024  Jessie Wise
 
 NEEDL:  A simple multikey password generator / manager - all from a photo
 CREATED:  2018
-UPDATED:  04/02/2024
-VERSION:  0.1.3b
+UPDATED:  04/04/2024
+VERSION:  0.2.1b
 ABOUT:
-    Using two simple passkeys and the photo filename to generate a hashing salt, Needl creates three unique hashes. 
-    One for the x axis, one for the y axis, and one as a modififer. Think of a photo as a large two dimensional map of pixels. 
-    Needl navigates through that map using coordinates that only your unique hashes can generate.
-    Using the pixels at those unique coordinates, Needl's algorithm calculates its own unique passkey signature. 
-    Now anytime you need to retrieve that passkey, you just need that photo, and your two passkeys.
+    Using two simple passkeys (or phrases) and the photo filename (also used to generate a hashing salt), Needl creates three unique hashes. One for the x axis, one for the y axis, and one as a modififer. 
+    Think of a photo as a large two dimensional map of pixels. Needl navigates through that map using coordinates that only your unique hashes can generate.
+    Using the pixels at those unique coordinates, Needl's algorithm extracts its own unique passkey signature. Now anytime you need to retrieve that passkey signature, you just need that photo and your two passkeys.
     Example:
-        Photo00179.jpg (this string itself is a part of salt string)
-        passkey1:  "First hike with puppy"  (each of these passkeys are salted as well)
+        Photo00179.jpg (this name itself is a part of the salt string)
+        passkey1:  "First hike with puppy"  (each of these passkeys are modified with their own salt string before hashing)
         passkey2:  "personal instagram"
-    Only this unique map of pixels, and three unique keys:  passkey1, passkey2, and filename (with datetime options for additional unique salting)
-    will retrieve that same unique passkey signature. Use the same combination but a different string for passkey2, for example - "work instagram", 
-    you will get a completely different and unique passkey signature.
+    Only this unique map of pixels, and three unique keys:  passkey1, passkey2, and filename (with datetime options for additional unique salting) will retrieve that same unique passkey signature. 
+    Use the same combination but a different string for passkey2, for example - "work instagram", you will get a completely different and unique passkey signature.
     Like finding a needle in a haystack.
 
     For more information, visit:  https://github.com/jessiepdx/needl.js
 NOTES:
-    
+    It is advised not to rely on compressed image formats like jpeg. You can not gaurantee that they will be unpacked with the original RGB values. 
+    Calling the getter method for haystack will return a lossless format (default PNG) of your original image, maintaining the correct RGB values per pixel.
 TODO:
     Improved validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
     Add an array that contains all acceptable characters in byte value to check for valid bytes to return to the byte array
@@ -44,7 +42,6 @@ TODO:
     Add encoding method (in version 2)
 */
 
-// Available outside of the class for accessing by UI inputs
 //  TODO:  Set all these up correctly
 const symbol_sets = {
     "full" : "!@#$%^&*()-_+=`~.,<>/?\";:[]{}",
@@ -99,11 +96,11 @@ class Needl {
         if (options.hasOwnProperty("ndlDate")) {
             this.#cursor.modifier.dateSalt = options.ndlDate;
         }
-
+        
         // Validate data
         // Basic regular expression check
         let pk_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}$/;
-        let fn_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}(.jpe?g|.gif|.png|.bmp)$/;
+        let fn_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}$/;
         
         // test for required arguments
         if (!image || !pk1 || !pk2) {
@@ -113,11 +110,14 @@ class Needl {
         if (!pk_regExp.test(pk1) || !pk_regExp.test(pk2)) {
             return { "invalid" : true, "errMsg" : "passkeys requirements not met" };
         }
-
         // test for valid filename
         if (!fn_regExp.test(fn)) {
             return { "invalid" : true, "errMsg" : "filename requirements not met" };
         }
+        // test for valid mime type
+        //  TODO:  Create list of mimetypes compatible with HTML canvas
+        const dataUrl = image.src;
+        const mimetype = dataUrl.substring(dataUrl.indexOf(":")+1, dataUrl.indexOf(";"));
 
         // test for minimum pixel count
         //  TODO:  will improve this later
@@ -130,7 +130,7 @@ class Needl {
         this.#haystack.canvas.height = image.height;
         //  BUG:  iOS "jpg" from HEIC may not being drawing the image to the context.
         this.#haystack.drawImage(image, 0, 0);
-        this.#filename = fn;
+        this.#filename = fn.replace(/\.[^/.]+$/, "");
         this.#passkey1 = pk1;
         this.#passkey2 = pk2;
     }
@@ -212,7 +212,6 @@ class Needl {
             // Back up condition to break the loop with an error
             //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
-                taConsole("force loop break, while loop at 1000 iterations");
                 console.log("force loop break, while loop at 1000 iterations");
                 break;
             }
@@ -221,10 +220,10 @@ class Needl {
         // Byte buffer size has been fulfilled
         let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlOptions.ndlSize));
         let tempNeedl = new TextDecoder().decode(byteArray);
-        console.log(tempNeedl);
-
-        // Validate required number of capital letters and digits
+        
+        // Validate required number of capitals, digits, and symbols
         /* DISPLAY FOR DEBUGGING
+        console.log(tempNeedl);
         let capitalMatches = tempNeedl.match(/[A-Z]/g);
         let digitMatches = tempNeedl.match(/[0-9]/g);
         let symbolMatches = tempNeedl.match(/[\W_]/g);
@@ -286,7 +285,6 @@ class Needl {
             // Back up condition to break the loop with an error
             //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
-                taConsole("force loop break, while loop at 1000 iterations");
                 console.log("force loop break, while loop at 1000 iterations");
                 break;
             }
@@ -393,7 +391,7 @@ class Needl {
     get filename() {
         return this.#filename;
     }
-    
+
     get haystack() {
         return this.#canvas.toDataURL("image/png");
     }
