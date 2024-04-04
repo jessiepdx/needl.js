@@ -4,6 +4,10 @@
     <script src="needl.class.js"></script>
     <script>
         let haystack = new Image();
+        // Callback function for "haystack" Image
+        haystack.onload = imageLoaded;
+
+        let ndl;
 
         function taConsole(str, clear = false) {
             let tac = document.querySelector("textarea");
@@ -14,15 +18,18 @@
             tac.innerHTML = text + str;
         }
 
-        // Callback function for "haystack" Image
-        haystack.onload = function () {
-            taConsole(" loaded!\n");
-            document.getElementById("processBtn").disabled = false;
+        function imageLoaded() {
+            // Clear any previously generated Needl
+            taConsole("", true);
+            
+            // Enable inputs and set filename modifier value
             document.getElementById("passkey1").disabled = false;
             document.getElementById("passkey2").disabled = false;
             document.getElementById("fileName").disabled = false;
             let filename = document.getElementById("photoFile").files[0].name;
-            document.getElementById("fileName").value = filename;
+            document.getElementById("fileName").value = filename.replace(/\.[^/.]+$/, "");
+            document.getElementById("ndlDate").disabled = false;
+            document.getElementById("processBtn").disabled = false;
         }
 
         function toggleVisibility(input) {
@@ -36,14 +43,15 @@
         }
 
         function makeNeedl(btn) {
-            let f = btn.form;
-            //let imageFile = f.photoFile.files[0];
+            // Clear previous Needl instance, if any
+            ndl = {"invalid" : true};
+            
             // gather image, passkeys, and options
+            let f = btn.form;
             let pk1 = f.passkey1.value;
             let pk2 = f.passkey2.value;
             let fn = f.fileName.value;
             let options = {};
-
 
             // Handle configuration options
             // for every option in needl_defaults set options if the value was changed from default
@@ -54,12 +62,12 @@
             }
             // Set date value if changed
             if (f.ndlDate.value != "") {
-                opt.ndlDate = f.ndlDate.value;
+                options.ndlDate = f.ndlDate.value;
             }
 
-            // If the haystack (image) is loaded, pass the haystack, filename, and passkeys
+            // If the haystack (image) is loaded, pass the haystack, filename, passkeys, and options
             if (haystack.complete) {
-                let ndl = new Needl(haystack, fn, pk1, pk2, options);
+                ndl = new Needl(haystack, fn, pk1, pk2, options);
                 if (ndl.invalid) {
                     console.log(ndl.errMsg);
                     return;
@@ -72,29 +80,22 @@
                     console.log(r.length);
                     console.log(ndl.results);
                     taConsole(r, true);
-                    document.getElementById("copyNdlBtn").disabled = false;
+                    let copyBtn = document.getElementById("copyNdlBtn");
+                    copyBtn.disabled = false;
+                    copyBtn.addEventListener("click", () => {navigator.clipboard.writeText(r);});
                     let saveBtn = document.getElementById("saveImage");
                     saveBtn.disabled = false;
-                    // Set up save button functionality here so we can use ndl
-                    saveBtn.addEventListener("click", (e) => {
-                        const png = ndl.haystack;
-                        const psuedoLink = document.createElement('a');
-                        psuedoLink.href = png;
-                        psuedoLink.download = ndl.filename;
-                        psuedoLink.click();
-                        psuedoLink.remove();
-                    });
+                    saveBtn.addEventListener("click", savePNG);
                 });
             }
             else {
-                taConsole("Image not loaded, try again");
+                alert("Image not loaded yet");
             }
 
         }
 
         // Load image as soon as possible, before submitting passkeys
         function loadImage(imageFile) {
-            taConsole("Loading image...");
             let f = imageFile.form;
             let file = imageFile.files[0];
             let reader  = new FileReader();
@@ -109,6 +110,15 @@
             reader.readAsDataURL(file);
         }
 
+        function savePNG() {
+            const png = ndl.haystack;
+            const psuedoLink = document.createElement('a');
+            psuedoLink.href = png;
+            psuedoLink.download = ndl.filename + ".png";
+            psuedoLink.click();
+            psuedoLink.remove();
+        }
+
         function uiLoaded() {
             // Set the default values for the form
             let f = document.querySelector("form");
@@ -116,6 +126,15 @@
                 f[opt].value = needl_defaults[opt];
                 f[opt].dataset.default = needl_defaults[opt];
             }
+
+            let imgBtn = document.getElementById("openImage");
+            let p = imgBtn.parentNode;
+            let d = p.offsetWidth - imgBtn.offsetWidth;
+            console.log(imgBtn.offsetWidth);
+            console.log(p.offsetWidth);
+            console.log(imgBtn.offsetHeight);
+            console.log(p.offsetHeight);
+            imgBtn.style.height = p.offsetHeight - d + "px";
         }
     </script>
     <link rel="stylesheet" type="text/css" href="styles.css" />
@@ -171,7 +190,7 @@
             cursor: pointer;
             display: block;
             min-width: 300px;
-            background-color: aliceblue;
+            background-color: rgba(64, 64, 64, 0.2);
         }
         #passkeys {
             background-color: white;
@@ -196,7 +215,7 @@
         <form>
         <section>
             <div id="photo">
-                <label for="photoFile">Select a photo</label>
+                <label id="openImage" for="photoFile">Select a photo</label>
                 <input type="file" id="photoFile" name="photoFile" hidden="true" onchange="loadImage(this);" />
             </div>
             <div id="passkeys">
@@ -204,8 +223,8 @@
                 <input type="text" id="passkey2" name="passkey2" placeholder="Passkey Two" disabled="true" /><label class="pwdShowHide" for="switchVisibility">&#x1F929;</label><br />
                 <input type="checkbox" id="switchVisibility" name="switchVisibility" onchange="toggleVisibility(this);" checked="true" hidden="true" />
                 <h3>Modifier</h3>
-                <input type="text" id="fileName" name="fileName" placeholder="filename.png" />
-                <label class="above" for="ndlDate">Date:  </label><input type="date" id="ndlDate" name="ndlDate" /><br />
+                <input type="text" id="fileName" name="fileName" placeholder="filename.png" disabled="true" />
+                <label class="above" for="ndlDate">Date:  </label><input type="date" id="ndlDate" name="ndlDate" disabled="true" /><br />
                 <button type="button" id="processBtn" onclick="makeNeedl(this);" disabled="true">Process</button>
             </div>
             <div id="settings">
