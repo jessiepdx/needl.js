@@ -63,7 +63,7 @@ The same principals of the stand alone application apply to using within your we
 _passkey2 is filled out with the website's public key (we used github's for this example)_
 
 Will return the following _passkey signature_:
->^xHI}W{s8gO=ZF&CRBqbtDfLc}90aTg"$f=63{ghu@~)f*\<~;.0:"K6MU(*XiIeLE\`jBBzt\}BP|I=AHLgni7T"9Wr[yDt@8}Cql:$phpliPebfO;pogDO)w!RfIza;
+>-)poXG)m^?jec_To~pdJoIK>n;]bAd~\\I.Izi6WN/XoIoFq[7H;H!HXdm/\\1tI}i"Sa(>n2M"&I<vdn-~a]&'kL2JgGpPm%d8|+=^!4ylDB;X#;T+'v$F0|IwCGl(YdA
 
 In this example, the user is only asked for their photo and a single passkey. The resulting Needl is sent back to the server and handled like any other password (salted by the server and compare the result with the hash stored in a database)
 
