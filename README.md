@@ -1,6 +1,8 @@
 # needl.js
 **NEEDL** -- securely store and retrieve data within a photograph; _like finding a **needl**e in a haystack._
 
+> test it out yourself:  
+
 ## About
 Needl uses four pieces of unique data to securely store and retrieve data in photographs. We all have hundreds, if not thousands of photographs on our personal devices such as our phones, tablets, and computers; not to mention also stored on various websites on the internet. Most of these photographs have tens of millions of pixels. Pixels represent the colors of light spectrum in values of *red, green, and blue* producing a 24bit value (nearly seventeen million) of color possibilities.  
 Let's think of a photograph as a unique two dimensional map of pixels then -- each map with millions of locations and millions of possibile values at each location. Needl navigates this unique map using coordinates it creates from three unique keys:  **passkey1**, **passkey2**, and the photo's **filename**. These keys are turned into cyrptographic hashes using techniques similar to how websites handle password storage and verification.
@@ -91,7 +93,3 @@ Needl uses JavaScript's SubtleDigest to create the hashes it uses. This is an as
 * Separate out iteratePixels and create buildNeedl (which will call iteratePixels and validate the string)
 * Add a second argument to iteratePixels that takes an array of acceptable byte values to add to the byte array
 * Add encoding method (in version 2)
-
-[^1] functionality for storing data in lossless photo formats like PNG and BMP will be added back in ver 2.0
-[^2] a string containing 256 - 1024 hexidecimal values
-[^3] a unique value concatenated onto passkeys before hashing - for added security
