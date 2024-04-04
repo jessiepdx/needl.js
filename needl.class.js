@@ -1,4 +1,19 @@
 /*
+Copyright (C) 2024  Jessie Wise
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 NEEDL:  A simple multikey password generator / manager - all from a photo
 CREATED:  2018
 UPDATED:  04/02/2024
@@ -55,7 +70,7 @@ class Needl {
 
     // Haystack and Needl
     #canvas = document.createElement("canvas");
-    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true });
+    #haystack = this.#canvas.getContext("2d", { willReadFrequently: true, colorSpace: "srgb" });
     #cursor = { "start" : {}, "iterator" : {}, "modifier" : {} };
     #needl = "";
 
@@ -113,6 +128,7 @@ class Needl {
         // Everything is valid - draw image in canvas and set properties
         this.#haystack.canvas.width = image.width;
         this.#haystack.canvas.height = image.height;
+        //  BUG:  iOS "jpg" from HEIC may not being drawing the image to the context.
         this.#haystack.drawImage(image, 0, 0);
         this.#filename = fn;
         this.#passkey1 = pk1;
@@ -144,7 +160,6 @@ class Needl {
 
         // convert hash array data into 64 character string of hexidecimals
         this.#cursor.iterator.salt = salt_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        
 
         // Hash both passkeys
         // X axis (passkey1)
@@ -189,15 +204,16 @@ class Needl {
             currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
             
             // Get  3x3 pixel grid from image context
-            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3);
-            //console.log(pixelGrid);
+            //  BUG:  iOS doesn't respect the colorspace and returns pixels values different from other systems
+            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3, { colorSpace: "srgb" });
             this.#parsePixelGrid(Array.from(pixelGrid.data));
             this.#cursor.iterator.count++;
             
             // Back up condition to break the loop with an error
             //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
-                console.log("had to break");
+                taConsole("force loop break, while loop at 1000 iterations");
+                console.log("force loop break, while loop at 1000 iterations");
                 break;
             }
         }
@@ -270,7 +286,8 @@ class Needl {
             // Back up condition to break the loop with an error
             //  TODO:  Improve this.
             if (this.#cursor.iterator.count == 1000) {
-                console.log("had to break");
+                taConsole("force loop break, while loop at 1000 iterations");
+                console.log("force loop break, while loop at 1000 iterations");
                 break;
             }
         }
@@ -333,7 +350,6 @@ class Needl {
         }
         if (valuesString.length == 10) {
             let fiveBytes = valuesString.match(/([a-f\d]{2})/g);
-            
             for (var i = 0; i < fiveBytes.length; i++) {
                 let decValue = parseInt(fiveBytes[i], 16);
                 // Check byte value with allowed characters
@@ -372,5 +388,13 @@ class Needl {
             return this.#needl;
         }
         
+    }
+
+    get filename() {
+        return this.#filename;
+    }
+    
+    get haystack() {
+        return this.#canvas.toDataURL("image/png");
     }
 }
