@@ -15,9 +15,14 @@
         }
 
         // Callback function for "haystack" Image
-        haystack.onload = function (event) {
+        haystack.onload = function () {
             taConsole(" loaded!\n");
             document.getElementById("processBtn").disabled = false;
+            document.getElementById("passkey1").disabled = false;
+            document.getElementById("passkey2").disabled = false;
+            document.getElementById("fileName").disabled = false;
+            let filename = document.getElementById("photoFile").files[0].name;
+            document.getElementById("fileName").value = filename;
         }
 
         function toggleVisibility(input) {
@@ -32,11 +37,11 @@
 
         function makeNeedl(btn) {
             let f = btn.form;
-            let imageFile = f.photoFile.files[0];
+            //let imageFile = f.photoFile.files[0];
             // gather image, passkeys, and options
             let pk1 = f.passkey1.value;
             let pk2 = f.passkey2.value;
-            let fn = imageFile.name;
+            let fn = f.fileName.value;
             let options = {};
 
 
@@ -68,6 +73,17 @@
                     console.log(ndl.results);
                     taConsole(r, true);
                     document.getElementById("copyNdlBtn").disabled = false;
+                    let saveBtn = document.getElementById("saveImage");
+                    saveBtn.disabled = false;
+                    // Set up save button functionality here so we can use ndl
+                    saveBtn.addEventListener("click", (e) => {
+                        const png = ndl.haystack;
+                        const psuedoLink = document.createElement('a');
+                        psuedoLink.href = png;
+                        psuedoLink.download = ndl.filename;
+                        psuedoLink.click();
+                        psuedoLink.remove();
+                    });
                 });
             }
             else {
@@ -113,9 +129,10 @@
             height: 40px;
             margin-bottom: 10px;
         }
-        input, textarea {
+        input, textarea, button {
             font-size: 14pt;
             padding: 4px;
+            margin: 4px;
         }
         label.above {
             font-size: 10pt;
@@ -183,11 +200,13 @@
                 <input type="file" id="photoFile" name="photoFile" hidden="true" onchange="loadImage(this);" />
             </div>
             <div id="passkeys">
-                <input type="text" id="passkey1" name="passkey1" placeholder="Passkey One" /><label class="pwdShowHide" for="switchVisibility">&#x1F929;</label><br />
-                <input type="text" id="passkey2" name="passkey2" placeholder="Passkey Two" /><label class="pwdShowHide" for="switchVisibility">&#x1F929;</label><br />
+                <input type="text" id="passkey1" name="passkey1" placeholder="Passkey One" disabled="true" /><label class="pwdShowHide" for="switchVisibility">&#x1F929;</label><br />
+                <input type="text" id="passkey2" name="passkey2" placeholder="Passkey Two" disabled="true" /><label class="pwdShowHide" for="switchVisibility">&#x1F929;</label><br />
                 <input type="checkbox" id="switchVisibility" name="switchVisibility" onchange="toggleVisibility(this);" checked="true" hidden="true" />
-                Modifier
+                <h3>Modifier</h3>
+                <input type="text" id="fileName" name="fileName" placeholder="filename.png" />
                 <label class="above" for="ndlDate">Date:  </label><input type="date" id="ndlDate" name="ndlDate" /><br />
+                <button type="button" id="processBtn" onclick="makeNeedl(this);" disabled="true">Process</button>
             </div>
             <div id="settings">
                 <label class="above" for="ndlCount">Needl Count</label><input type="number" id="ndlCount" name="ndlCount" min="1" max="4" step="1" value="1" disabled="true" /><br />
@@ -196,11 +215,11 @@
                 <label class="above" for="minDigits">Minimum Digits:</label><input type="number" id="minDigits" name="minDigits" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="minSymbols">Minimum Symbols:</label><input type="number" id="minSymbols" name="minSymbols" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="allowedSymbols">Symbols:  </label><input type="text" id="allowedSymbols" name="allowedSymbols" placeholder="!@#$%^*()_-+=.,>;:" /><br />
-                <button type="button" id="processBtn" onclick="makeNeedl(this);" disabled="true">Process</button>
             </div>
             <div id="needl">
                 <textarea id="ndlDisplay" name="ndlDisplay" cols="32" rows="4"></textarea><br />
                 <button type="button" id="copyNdlBtn" disabled="true">Copy</button>
+                <button type="button" id="saveImage" disabled="true">Save as PNG</button>
             </div>
         </section>
         </form>
