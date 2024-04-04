@@ -389,4 +389,12 @@ class Needl {
         }
         
     }
+
+    get filename() {
+        return this.#filename;
+    }
+    
+    get haystack() {
+        return this.#canvas.toDataURL("image/png");
+    }
 }
