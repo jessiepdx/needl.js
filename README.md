@@ -1,7 +1,7 @@
 # needl.js
 **NEEDL** -- securely store and retrieve data within a photograph; _like finding a **needl**e in a haystack._
 
-> test it out yourself:  
+> demo:  https://needl-ui-demo.netlify.app/
 
 ## About
 Needl uses four pieces of unique data to securely store and retrieve data in photographs. We all have hundreds, if not thousands of photographs on our personal devices such as our phones, tablets, and computers; not to mention also stored on various websites on the internet. Most of these photographs have tens of millions of pixels. Pixels represent the colors of light spectrum in values of *red, green, and blue* producing a 24bit value (nearly seventeen million) of color possibilities.  
