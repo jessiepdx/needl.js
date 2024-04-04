@@ -68,7 +68,7 @@ Will return the following _passkey signature_:
 In this example, the user is only asked for their photo and a single passkey. The resulting Needl is sent back to the server and handled like any other password (salted by the server and compare the result with the hash stored in a database)
 
 ### **Storing custom data within a photograph**
-This was Needl's main function when it was first created in 2018 -- mainly intended for hiding private keys for cyrptocurrencies. For now this feature has been left out, but it will be added back again. Many changes were made to the encoding / decoding algorithms used since the original project. Currently, one of the only downsides to encoding custom data into a photograph is having to save that photo as a lossless format such as PNG or BMP. This is because compressing photos changes their pixel's RGB values just enough that values encoded into the pixels are lost.
+This was Needl's main function when it was first created in 2018 -- mainly intended for hiding private keys for cyrptocurrencies. For now this feature has been left out, but it will be added back again. Many changes were made to the encoding / decoding algorithms used since the original project. Currently, one of the only downsides to encoding custom data into a photograph is having to keep that photo in a lossless format such as PNG or BMP. Compressed image types, like jpeg, do not store their RGB data for each individual pixel. When unpacking compressed images back into indivual pizels, RGB values may not be calculated the same as they were in the original image. Therefore, it cannot be gauranteed that data encoded in lossy formats will remain.
 
 ### Additional modifiers
 
