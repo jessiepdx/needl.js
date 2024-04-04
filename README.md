@@ -81,13 +81,15 @@ Needl uses JavaScript's SubtleDigest to create the hashes it uses. This is an as
 
 ## Additional Information
 **CREATED:**  2018  
-**UPDATED:**  03/27/2024  
-**VERSION:**  0.1.1b  
+**UPDATED:**  04/04/2024  
+**VERSION:**  0.2.1b  
 **NEW:**  
 **FIXES:**  
-**TODO:**  Validation of input arguements (image size min requirements, passkey min requirements, filename min requirements) 
-check for options argument object and set options accordingly (including datetime for salting) 
-add encoding methods
+**TODO:**  Improved validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
+    Add an array that contains all acceptable characters in byte value to check for valid bytes to return to the byte array
+    Separate out iteratePixels and create buildNeedl (which will call iteratePixels and validate the string)
+    Add a second argument to iteratePixels that takes an array of acceptable byte values to add to the byte array
+    Add encoding method (in version 2)
 
 [^1] functionality for storing data in lossless photo formats like PNG and BMP will be added back in ver 2.0
 [^2] a string containing 256 - 1024 hexidecimal values
