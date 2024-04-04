@@ -36,7 +36,7 @@ The functionality of Needl is meant to run 100% serverless. With one of our UI e
 _*notice that you can use both pass**words** and pass**phrases** for your passkeys_
 
 Using this unique map of pixels, and three unique keys:  **filename**, **passkey1**, and **passkey2** returns the following _passkey signature_
->?pTP1I}#IX'%q![(=[INK1vb2.Bo-pZm*l3FeLm%C!Ckvp3M+G?aPb\]:IzIoW:sIn3]2|{ZehX`Fh-gabqI{3gE\F;k|?mxTv?@heEn46pVpv~e?|YT,/?n:YN%VA_?  
+>?pTP1I}#IX'%q![(=[INK1vb2.Bo-pZm*l3FeLm%C!Ckvp3M+G?aPb\\]:IzIoW:sIn3]2|{ZehX`Fh-gabqI{3gE\F;k|?mxTv?@heEn46pVpv~e?|YT,/?n:YN%VA_?  
 _(default needl size of 128)_
 
 Changing just one piece of data in either **filename**, **passkey1**, or **passkey2** will result in a completely different _passkey signature_.
@@ -48,7 +48,7 @@ Changing just one piece of data in either **filename**, **passkey1**, or **passk
 4. passkey2:  _"work email"_
 
 Will return the following _passkey signature_:
->Wkk?gJ}=t9K>&nzzYYM}QI6V5~R-P.M)Irj7]3Mn72OZdIp;^B5QIoWI{(BQS7FaG:y\e5fTV#XRJCLymON#jR%cvU's\3]sg'Ap;X>IoWXZjIo|#gb&R'-KrH}[iH$7
+>ve_5)OH,(=[!#u!aIQI}Ie~1u\\UaN+xnadaUn/~f\\$Wa@WVp$c^'HPin!\\/(|YZ?} L{80d&ygO$O(I 1I!Wm9T&W]Tm``IH<6#Xq<rxoYsaouH\\DLp78<,]xMbQkE|G
 
 #### Used in website or application
 The same principals of the stand alone application apply to using within your websites / apps. As the developer, you can choose to provide one of the unique keys or _modifiers_ and therefore only require your users to provide the correct photo with a **single passkey**. This can be used for standard sign-in practices or as a 2FA method to prove identity.
