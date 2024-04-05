@@ -76,10 +76,34 @@ This was Needl's main function when it was first created in 2018 -- mainly inten
 
 ## Documentation
 
-Create and store in a variable a new instance of Needl class. The constructor takes an image `<img>`, filename (string), passkey1 (string), and passkey2 (string) — as well as optional _options_ stored as a collection of key-value pairs. *See below for options examples.*  
+### Construction ###
+Create and store in a variable a new instance of Needl class. The constructor takes an HTML image `<img>`, filename `String`, passkey1 `String`, and passkey2 `String` — as well as optional _options_ stored as a collection of key-value pairs `{}`. *See below for options examples.*  
 **New instance construction example:**  `let ndl = new Needl(img, fn, pk1, pk2);`
 
 Needl uses JavaScript's SubtleDigest to create the hashes it uses. This is an asynchronous function that returns a `Promise`. JavaScript class constructors cannot return a `Promise`, therefore it's best to handle generating these hashes the first time the secret _passkey signature (aka **needl**)_ value is requested by calling it's getter method `ndl.needl`. This returns a `Promise` that resolves to the _passkey signature_ `String`.
+
+### Options ###
+Without passing an options value in the constructor, the constant `needl_defaults` values will be used. To set custom options, add key-value pairs to a simple object `{}` from the following available options:  
+* **ndlSize** - Set to a value of 0 to decode previously encoded images until a `Null` byte value (0) is found. To generate a unique _passkey signature_, set to a value from 16 to 1024
+* **minCapitals** - Set to a value between 1-4 to require a minimum amount of capital letters `[A-Z]` required in your _passkey signature_  
+* **minDigits** - Set to a value between 1-4 to require a minimum amount of digits `[0-9]` required in your _passkey signature_
+* **minSymbols** - Set to a value between 1-4 to require a minimum amount of symbols ``[ !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]`` required in your _passkey signature_
+* **allowedSymbols** - A `String` of allowed symbols from the set ``[ !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]``
+* **ndlDate** - A Numerical representation of a `Date` such as the `DD-MM-YYYY` format from html `<input type="date">`. This value acts as a modifier to the start x, y position as well as modifying the salting string
+
+### Public Methods ###
+
+**filename** (Getter) - example:  `ndl.filename` returns a string with the image filename (sans file extension) that was used in the hash salting process.  
+
+**haystack** (Getter) - example:  `ndl.haystack` returns the image in a lossless `PNG` format.  
+
+**needl** (Getter) - example:  `ndl.needl` returns the _passkey signature_ generated. The first time this is called, it returns a `Promise`. It must generate the hashes, which requires asyncronous methods, and then iterates pixels and decodes your image.  
+
+**results** (Getter) - example: `ndl.results` returns a simple object `{}` containing the following properties:
+* _iterations_ - the number of total iterations made
+* _totalPixels_ - the total number of pixels within the image
+* _valid_ - the total number of valid color channels found (a Delta of 5 or less from source pixel's channel value)
+* _invalid_ - the total number of invalid channels found (and hence skipped over)
 
 ## Additional Information
 **CREATED:**  2018  
