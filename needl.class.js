@@ -369,7 +369,23 @@ class Needl {
             specialByte = valuesString.substring(0, 1);
             valuesString = valuesString.substring(1);
         }
-        // This is not an else if for a reason, valueString may have been modified in the previous if statement and should be re-evaluated
+
+        // Check if special byte has been assigned a value of 1 or 2
+        if (specialByte == 1) {
+            // This pixel has been marked as unusable
+            // This is used when encoding images with previous data encoded as well
+            // The fifth byte position value notes the id of the decoding process it belongs to
+            // If for this decoding process, pass the remaining byte values into the byteBuffer (if allowed)
+            // Clear the remaining valueString before moving on
+        }
+        else if (specialByte == 2) {
+            // Do not pass on the valueString, it will be used for instructions instead
+            // This is used when encoding images to give special instructions to the decoder
+            // The fifth byte position value notes the action to take
+            // The remaining 4 bytes are additional instructions for that action
+        }
+        
+        // If no special byte is present, we should have a valueString with a length of 10
         if (valuesString.length == 10) {
             let fiveBytes = valuesString.match(/([a-f\d]{2})/g);
             for (var i = 0; i < fiveBytes.length; i++) {
@@ -382,14 +398,11 @@ class Needl {
                 if (decValue >= 65 && decValue <= 90 || decValue >= 97 && decValue <= 122 || decValue >= 48 && decValue <= 57 || allowedSymbolsArray.includes(decValue)) {
                     this.#byteBuffer.push(decValue);
                 }
+                // This is used for decoding of encoded information
                 if (decValue == 0) {
                     console.log("Null found");
                 }
             }
-        }
-        else {
-            // If this happens, theres a problem with the code removing prepending "0" from base 11 values as they are collected
-            console.log("incompatible value string:  " + valuesString);
         }
     }
 
