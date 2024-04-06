@@ -42,11 +42,11 @@ TODO:
     Add encoding method (in version 2)
 */
 
-//  TODO:  Set all these up correctly
+// Default symbol sets
 const symbol_sets = {
-    "full" : "!@#$%^&*()-_+=`~.,<>/?\";:[]{}",
-    "partial" : "",
-    "minimal" : ""
+    "full" : " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~", // according to https://owasp.org/www-community/password-special-characters
+    "full (no space)" : "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+    "punctuation" : "?!.,;-'"
 };
 
 // Defaults set here overwrite the Needl class defaults.
@@ -63,7 +63,7 @@ class Needl {
     #passkey1;
     #passkey2;
     #filename = "";
-    // dateSalt is added to cursor.modifier
+    //  NOTE:  dateSalt is added to cursor.modifier
 
     // Haystack and Needl
     #canvas = document.createElement("canvas");
@@ -85,10 +85,10 @@ class Needl {
         "minCapitals" : 1,
         "minDigits" : 1,
         "minSymbols" : 1,
-        "allowedSymbols" : "!@#$%^&*()-_+=`~.,<>/?\";:[]{}"
+        "allowedSymbols" : " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
     };
 
-    // haystack is an image file; filename, pk1, and pk2 are strings; options is a key-value pair collection (not required)
+    // Arguments:  image is an HTML image element; filename, pk1, and pk2 are strings; options is a key-value pair collection (not required)
     constructor(image, fn, pk1, pk2, options = {}) {
         // Merge options with needl_defaults and overwrite with assigned values
         this.#ndlOptions = {...needl_defaults, ...options};
@@ -102,24 +102,26 @@ class Needl {
         let pk_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}$/;
         let fn_regExp = /^[A-Za-z\d]+[A-Za-z\d. _-]{7,64}$/;
         
-        // test for required arguments
+        // Check for required arguments
         if (!image || !pk1 || !pk2) {
             return { "invalid" : true, "errMsg" : "missing required arguments" };
         }
-        // test for valid arguements
+        // Check for valid arguements
         if (!pk_regExp.test(pk1) || !pk_regExp.test(pk2)) {
             return { "invalid" : true, "errMsg" : "passkeys requirements not met" };
         }
-        // test for valid filename
+
+        // Check for valid filename
         if (!fn_regExp.test(fn)) {
             return { "invalid" : true, "errMsg" : "filename requirements not met" };
         }
-        // test for valid mime type
+
+        // Check for valid mime type
         //  TODO:  Create list of mimetypes compatible with HTML canvas
         const dataUrl = image.src;
         const mimetype = dataUrl.substring(dataUrl.indexOf(":")+1, dataUrl.indexOf(";"));
 
-        // test for minimum pixel count
+        // Check for minimum pixel count
         //  TODO:  will improve this later
         if (image.width * image.height < this.#ndlOptions.ndlSize * 1000 * 9) {
             return { "invalid" : true, "errMsg" : "not enough pixels in this image" };
@@ -141,11 +143,10 @@ class Needl {
         // First create a salt from filename
         let saltAlpha = this.#filename.match(/[A-Za-z]/g);
         let saltDigits = this.#filename.match(/\d/g);
-        // extract all digits from dateSalt if it exist, otherwise saltDate is an empty array
+        // Extract all digits from dateSalt if it exist, otherwise saltDate is an empty array
         let saltDate = (this.#cursor.modifier.hasOwnProperty("dateSalt")) ? this.#cursor.modifier.dateSalt.match(/\d/g) : [];
-        // multiplier is the sum of each individual digit from saltDigits and saltDate
+        // Multiplier is the sum of each individual digit from saltDigits and saltDate
         this.#cursor.modifier.multiplier = saltDigits.reduce((sum, val) => sum + parseInt(val, 10), 0) + saltDate.reduce((sum, val) => sum + parseInt(val, 10), 0);
-
         let saltString = saltAlpha.reduce((sum, val) => sum + val, "") + saltDigits.reduce((sum, val) => sum + val, "") + saltDate.reduce((sum, val) => sum + val, "");
 
         // Create two unique salt strings, one for each passkey
@@ -158,7 +159,7 @@ class Needl {
         const salt_hashBuffer = await crypto.subtle.digest("SHA-256", salt_charArray);
         const salt_hashArray = Array.from(new Uint8Array(salt_hashBuffer));
 
-        // convert hash array data into 64 character string of hexidecimals
+        // Convert hash array data into 64 character string of hexidecimals
         this.#cursor.iterator.salt = salt_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
         // Hash both passkeys
@@ -188,8 +189,30 @@ class Needl {
         } 
     }
 
+    #decode(until) {
+        // This function will call iteratePixels which will return a pixelGrid
+        // Much of the functionality of iterate pixels will move to this method
+        if (until == 0) {
+            // This means iteratePixels until a byte value of 0 (Null) is decoded
+            // Decoding previously encoded data terminated with a byte value of 0 (Null)
+            return true; // when found null and completed
+        }
+        else if (until > 16 && until <= 1024) {
+            // Iterate pixels for the requested amount in range of 16-1024
+            // Decoding raw data from pixels for passkey generation.
+            return true; // when decoded enough acceptable characters into byte array to create needl and validated for requirements met
+        }
+        else {
+            return false;
+        }
+    }
+
+    #encode(dataArray) {
+        // This method will encode data into pixels
+    }
+
     #iteratePixels() {
-        // set current cursor position to the start x and y
+        // Set current cursor position to the start x and y
         let currentPos = { 
             "x" : (this.#cursor.start.x * this.#cursor.modifier.multiplier) % this.#canvas.width, 
             "y" : (this.#cursor.start.y * this.#cursor.modifier.multiplier) % this.#canvas.height };
@@ -198,7 +221,7 @@ class Needl {
         this.#cursor.iterator.count = 0;
         // Will need to eventually move this loop into a separate own method
         while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
-            // move cursor based on iterator position on x, y, and salt hashes
+            // Move cursor based on iterator position on x, y, and salt hashes
             let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
             currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
             currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
@@ -239,7 +262,7 @@ class Needl {
         while (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals || tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits || tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols) {
             console.log("Missing string requirements");
             
-            // move cursor based on iterator position on x, y, and salt hashes
+            // Move cursor based on iterator position on x, y, and salt hashes
             let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
             currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
             currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
@@ -300,20 +323,21 @@ class Needl {
     #parsePixelGrid(pixelGridArray) {
         for (var i = 0; i < pixelGridArray.length; i++) {
             let channel = i % 4;
-            // ignore the alpha channel and the source pixel (center pixel)
+            // Ignore the alpha channel and the source pixel (center pixel)
             if (channel != 3 && (i < (5 * 4) || i > (5 * 4) + 3)) {
                 let difference = pixelGridArray[i] - pixelGridArray[(5 * 4) + channel];
                 if (Math.abs(difference) <= 5) {
-                    // valid pixel
+                    // Valid pixel
                     this.#totalValid++;
                     let value = (difference < 0) ? 5 + Math.abs(difference) : difference;
                     this.#base11Buffer.push(value);
 
-                    // make sure base11Buffer doesn't start with a zero value
+                    // Make sure base11Buffer doesn't start with a zero value
                     while (this.#base11Buffer[0] == 0) {
                         this.#base11Buffer.shift();
                     }
                     if (this.#base11Buffer.length >= 12) {
+                        // Remove 12 elements from the base11Buffer and parse them into a base 11 value 
                         this.#parseBase11(this.#base11Buffer.splice(0, 12));
                     }
                 }
@@ -338,14 +362,14 @@ class Needl {
     }
 
     #parseBase16(valuesString) {
-        // special byte will be used for calling certain function in future versions of Needl for encoding and decoding
-        // its value is either 0, 1, or 2 and comes from base 16 values after 5 bytes
-        // essentially a "remainder" from the base 11 conversion
+        // Special byte will be used for calling certain function in future versions of Needl for encoding and decoding
+        // Its value is either 0, 1, or 2 and comes from base 16 values after 5 bytes, essentially a "remainder" from the base 11 conversion
         let specialByte = 0;
         if (valuesString.length == 11) {
             specialByte = valuesString.substring(0, 1);
             valuesString = valuesString.substring(1);
         }
+        // This is not an else if for a reason, valueString may have been modified in the previous if statement and should be re-evaluated
         if (valuesString.length == 10) {
             let fiveBytes = valuesString.match(/([a-f\d]{2})/g);
             for (var i = 0; i < fiveBytes.length; i++) {
@@ -353,14 +377,18 @@ class Needl {
                 // Check byte value with allowed characters
                 // Alphabetical range:  [A-Z] ASCII(65-90) and [a-z] ASCII(97-122)
                 // Numeric range:  [0-9] ASCII(48-57)
-                // Default symbols:
+                // Default symbols:  [ !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]
                 let allowedSymbolsArray = Array.from(this.#ndlOptions.allowedSymbols, val => val.charCodeAt(0));
                 if (decValue >= 65 && decValue <= 90 || decValue >= 97 && decValue <= 122 || decValue >= 48 && decValue <= 57 || allowedSymbolsArray.includes(decValue)) {
                     this.#byteBuffer.push(decValue);
                 }
+                if (decValue == 0) {
+                    console.log("Null found");
+                }
             }
         }
         else {
+            // If this happens, theres a problem with the code removing prepending "0" from base 11 values as they are collected
             console.log("incompatible value string:  " + valuesString);
         }
     }
@@ -378,11 +406,11 @@ class Needl {
 
     get needl() {
         if (this.#needl.length != this.#ndlOptions.ndlSize) {
-            // returns a promise to resolve value
+            // Returns a promise to resolve value
             return this.#findNeedl();
         }
         else {
-            // returns stored value
+            // Returns stored value
             return this.#needl;
         }
         
