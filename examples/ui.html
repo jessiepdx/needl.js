@@ -127,13 +127,13 @@
                 f[opt].dataset.default = needl_defaults[opt];
             }
 
+            resizeElements();
+        }
+
+        function resizeElements() {
             let imgBtn = document.getElementById("openImage");
             let p = imgBtn.parentNode;
             let d = p.offsetWidth - imgBtn.offsetWidth;
-            console.log(imgBtn.offsetWidth);
-            console.log(p.offsetWidth);
-            console.log(imgBtn.offsetHeight);
-            console.log(p.offsetHeight);
             imgBtn.style.height = p.offsetHeight - d + "px";
         }
     </script>
