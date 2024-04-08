@@ -45,7 +45,7 @@ TODO:
 // Default symbol sets
 const symbol_sets = {
     "full" : " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~", // according to https://owasp.org/www-community/password-special-characters
-    "full (no space)" : "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+    "full_nospace" : "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
     "punctuation" : "?!.,;-'"
 };
 
@@ -55,7 +55,8 @@ const needl_defaults = {
     "minCapitals" : 1,
     "minDigits" : 1,
     "minSymbols" : 1,
-    "allowedSymbols" : symbol_sets.full
+    "allowedSymbols" : symbol_sets.full_nospace,
+    "splitByte" : true
 };
 
 class Needl {
@@ -85,7 +86,8 @@ class Needl {
         "minCapitals" : 1,
         "minDigits" : 1,
         "minSymbols" : 1,
-        "allowedSymbols" : " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+        "allowedSymbols" : " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+        "splitByte" : true
     };
 
     // Arguments:  image is an HTML image element; filename, pk1, and pk2 are strings; options is a key-value pair collection (not required)
@@ -388,8 +390,13 @@ class Needl {
         // If no special byte is present, we should have a valueString with a length of 10
         if (valuesString.length == 10) {
             let fiveBytes = valuesString.match(/([a-f\d]{2})/g);
+            // let returnArray = [];
             for (var i = 0; i < fiveBytes.length; i++) {
                 let decValue = parseInt(fiveBytes[i], 16);
+                // The splitByte property allows use of decimal values between 128 and 255
+                if (decValue > 127 && this.#ndlOptions.splitByte) {
+                    decValue -= 128;
+                }
                 // Check byte value with allowed characters
                 // Alphabetical range:  [A-Z] ASCII(65-90) and [a-z] ASCII(97-122)
                 // Numeric range:  [0-9] ASCII(48-57)
