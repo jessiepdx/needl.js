@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="needl.class.js"></script>
+    <script src="../needl.class.js"></script>
     <script>
         let haystack = new Image();
         // Callback function for "haystack" Image
@@ -56,15 +56,19 @@
             // Handle configuration options
             // for every option in needl_defaults set options if the value was changed from default
             for (const opt in needl_defaults) {
-                if (f[opt].value != f[opt].dataset.default) {
+                if (f[opt].type != "checkbox" && f[opt].value != f[opt].dataset.default) {
                     options[opt] = f[opt].value;
+                }
+                else if (f[opt].type == "checkbox" && f[opt].checked != Boolean(f[opt].dataset.default)) {
+                    options[opt] = (f[opt].checked) ? true : false;
                 }
             }
             // Set date value if changed
             if (f.ndlDate.value != "") {
                 options.ndlDate = f.ndlDate.value;
             }
-
+            
+            console.log(options);
             // If the haystack (image) is loaded, pass the haystack, filename, passkeys, and options
             if (haystack.complete) {
                 ndl = new Needl(haystack, fn, pk1, pk2, options);
@@ -123,17 +127,23 @@
             // Set the default values for the form
             let f = document.querySelector("form");
             for (const opt in needl_defaults) {
-                f[opt].value = needl_defaults[opt];
-                f[opt].dataset.default = needl_defaults[opt];
+                if (f[opt].type == "checkbox") {
+                    f[opt].checked = needl_defaults[opt];
+                    f[opt].dataset.default = (needl_defaults[opt]) ? "true" : "";
+                }
+                else {
+                    f[opt].value = needl_defaults[opt];
+                    f[opt].dataset.default = needl_defaults[opt];
+                }
             }
 
+            resizeElements();
+        }
+
+        function resizeElements() {
             let imgBtn = document.getElementById("openImage");
             let p = imgBtn.parentNode;
             let d = p.offsetWidth - imgBtn.offsetWidth;
-            console.log(imgBtn.offsetWidth);
-            console.log(p.offsetWidth);
-            console.log(imgBtn.offsetHeight);
-            console.log(p.offsetHeight);
             imgBtn.style.height = p.offsetHeight - d + "px";
         }
     </script>
@@ -234,6 +244,7 @@
                 <label class="above" for="minDigits">Minimum Digits:</label><input type="number" id="minDigits" name="minDigits" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="minSymbols">Minimum Symbols:</label><input type="number" id="minSymbols" name="minSymbols" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="allowedSymbols">Symbols:  </label><input type="text" id="allowedSymbols" name="allowedSymbols" placeholder="!@#$%^*()_-+=.,>;:" /><br />
+                <label class="above" for="splitByte">Split Byte:  </label><input type="checkbox" id="splitByte" name="splitByte" checked="true" /><br />
             </div>
             <div id="needl">
                 <textarea id="ndlDisplay" name="ndlDisplay" cols="32" rows="4"></textarea><br />
