@@ -32,7 +32,7 @@ The functionality of Needl is meant to run 100% serverless. With one of our UI e
 [Image by Studiolarsen](https://pixabay.com/users/studiolarsen-2686243/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1433186) [from Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1433186)  
 > This photo is used for all examples and can be found in the examples folder  
 1. Photograph (4200 x 3000 - total of 12,600,000 pixels)
-2. Filename:  "Haystack-1433186.jpg"
+2. Filename:  "Haystack-1433186"
 3. passkey1:  "MyEasyPassword"  
 4. passkey2:  "personal instagram"  
 _*notice that you can use both pass**words** and pass**phrases** for your passkeys_
