@@ -85,12 +85,12 @@ Needl uses JavaScript's SubtleDigest to create the hashes it uses. This is an as
 ### Options ###
 Without passing an options value in the constructor, the constant `needl_defaults` values will be used. To set custom options, add key-value pairs to a simple object `{}` from the following available options:  
 * **ndlCount** - Set the number of Needl _passkey signatures_ to return. Default value is 1.
-* **ndlSize** - Set to a value of 0 to decode previously encoded images until a `Null` byte value (0) is found. To generate a unique _passkey signature_, set to a value from 16 to 1024
+* **ndlSize** - Set to a value of 0 to decode previously encoded images until a `Null` byte value (0) is found. To generate a unique _passkey signature_, set to a value from 32 to 256
 * **minCapitals** - Set to a value between 1-4 to require a minimum amount of capital letters `[A-Z]` required in your _passkey signature_  
 * **minDigits** - Set to a value between 1-4 to require a minimum amount of digits `[0-9]` required in your _passkey signature_
 * **minSymbols** - Set to a value between 1-4 to require a minimum amount of symbols ``[ !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]`` required in your _passkey signature_
 * **allowedSymbols** - A `String` of allowed symbols from the set ``[ !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]``
-* **splitByte** - Option to read only half of the byte value. Values of 128-255 are reduced by 128 to increase useable values.
+* **splitByte** - Splits the value of decoded Bytes. Values of 128-255 are reduced by 128 to increase useable values.
 * **ndlDate** - A Numerical representation of a `Date` such as the `DD-MM-YYYY` format from html `<input type="date">`. This value acts as a modifier to the start x, y position as well as modifying the salting string
 
 ### Public Methods ###
