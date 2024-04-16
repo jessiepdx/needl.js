@@ -10,8 +10,8 @@ Let's think of a photograph as a unique two dimensional map of pixels then -- ea
 Therefore Needl takes in the following four pieces of unique data and returns your data hidden within.
 * Photograph - as a unique map of pixel data, with your data hidden within
 * Filename - the filename of the photo is used (along with other modifiers) to create a hashing salt as well as other **_modifier_** values
-* Passkey1 - is hashed along with it's own salt and returns a 64-1024 length hash. This value becomes part of the algorithm for **_x axis_** coordinates
-* Passkey2 - is hashed along with it's own salt and returns a 64-1024 length hash. This value becomes part of the algorithm for **_y axis_** coordinates
+* Passkey1 - is hashed along with it's own salt and returns a 64 character length hash. This value becomes part of the algorithm for **_x axis_** coordinates
+* Passkey2 - is hashed along with it's own salt and returns a 64 character length hash. This value becomes part of the algorithm for **_y axis_** coordinates
 
 It is only by using the same four unique pieces of data can you retrieve the hidden data you seek.
 
