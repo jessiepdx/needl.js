@@ -1,3 +1,66 @@
 body {
     font-family: sans-serif;
+    margin: 0px;
+    background-color: lightgray;
+}
+header {
+    background-color: aqua;
+    height: 40px;
+    margin-bottom: 10px;
+}
+input, textarea, button {
+    font-size: 14pt;
+    padding: 4px;
+    margin: 4px;
+}
+label.above {
+    font-size: 10pt;
+    font-weight: bold;
+    display: block;
+    margin-top: 10px;
+}
+section {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 10px;
+    column-gap: 10px;
+    width: inherit;
+}
+div#container {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    min-width: 375px;
+    max-width: 840px;
+    padding: 5px;
+    border: 1px solid rgb(255, 145, 0);
+}
+section div {
+    border-radius: 3px;
+    padding: 10px;
+    flex-grow: 1;
+    /*min-width: 200px;*/
+}
+#photo {
+    background-color: white;
+    background-size: cover;
+}
+#photo label {
+    cursor: pointer;
+    display: block;
+    min-width: 300px;
+    background-color: rgba(64, 64, 64, 0.2);
+}
+#passkeys {
+    background-color: white;
+}
+#settings {
+    background-color: white;
+}
+#needl {
+    background-color: white;
+}
+.pwdShowHide { 
+    cursor: pointer;
 }
