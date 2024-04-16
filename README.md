@@ -131,4 +131,8 @@ Without passing an options value in the constructor, the constant `needl_default
 **FIXES:**  
 **TODO:**
 * Improved validation of input arguements
+<<<<<<< HEAD
 * Add encoding method (in version 2)
+=======
+* Add encoding method (in version 2)
+>>>>>>> ce9451ce41a863ba020a1222568c18ac07ddfe9a
