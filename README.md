@@ -65,7 +65,7 @@ The same principals of the stand alone application apply to using within your we
 _passkey2 is filled out with the website's public key (we used github's for this example)_
 
 Will return the following _passkey signature_:
->oY-8[)po%XGF{"[)m;!S^XxU?jUe)&c_To~pd&JoIK>J6nt<;%]bApd~1\RcI.WKIzCi6)\M8$WN/]XfoXkIo:Fq[7q=G)<H;H!9d(_H4IXdw%m/+\1t!I}i?x"SE\)a
+>oY-8[)po%XGF{"[)m;!S^XxU?jUe)&c_To\~pd&JoIK>J6nt<;%]bApd\~1\RcI.WKIzCi6)\M8$WN/]XfoXkIo:Fq[7q=G)<H;H!9d(_H4IXdw%m/+\1t!I}i?x"SE\)a
 
 In this example, the user is only asked for their photo and a single passkey. The resulting Needl is sent back to the server and handled like any other password (salted by the server and compare the result with the hash stored in a database)
 
