@@ -50,7 +50,7 @@ Changing just one piece of data in either **filename**, **passkey1**, or **passk
 4. passkey2:  _"work email"_
 
 Will return the following _passkey signature_:
->CcvTeBO_=ay5@6S+>cJS)ONH,D[6(,=[#!_-#u|!aOIlQI}((Ies~1DSFu\pUaN\+Cx?/6na>vadaU6na@_J/~_f=4\$Wz.(az[@WVxp$c^'{~fszH6wP"[R\6Ti[6nq
+>CcvTeBO_=ay5@6S+>cJS)ONH,D[6(,=[#!_-#u|!aOIlQI}((Ies\~1DSFu\pUaN\\+Cx?/6na>vadaU6na@_J/\~_f=4\\$Wz.(az[@WVxp$c^'{~fszH6wP"[R\6Ti[6nq
 
 #### Used in website or application
 The same principals of the stand alone application apply to using within your websites / apps. As the developer, you can choose to provide one of the unique keys or _modifiers_ and therefore only require your users to provide the correct photo with a **single passkey**. This can be used for standard sign-in practices or as a 2FA method to prove identity.
