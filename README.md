@@ -38,7 +38,7 @@ The functionality of Needl is meant to run 100% serverless. With one of our UI e
 _*notice that you can use both pass**words** and pass**phrases** for your passkeys_
 
 Using this unique map of pixels, and three unique keys:  **filename**, **passkey1**, and **passkey2** returns the following _passkey signature_
->?pTP1I}(#IX3'%q![{e1A6(,=[INKO1Gvv[bR2xq=.or.Bo-pZ…M|+4wGwt>?aPb$\\]M:Izu.Io7WL::hsIIUS2i0Cn3&VeD]S2Z  
+>?pTP1I}(#IX3'%q!\[{e1A6(,=\[INKO1Gvv\[bR2xq=.or.Bo-pZ]B$xm*l3TkFAeLsm%C!CCk^vpc3/FM|+4wGwt>?aPb$\]M:Izu.Io7WL::hsIIUS2i0Cn3&VeD]S2Z  
 _(default needl size of 128)_
 
 Changing just one piece of data in either **filename**, **passkey1**, or **passkey2** will result in a completely different _passkey signature_.
