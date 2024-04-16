@@ -10,8 +10,8 @@ Let's think of a photograph as a unique two dimensional map of pixels then -- ea
 Therefore Needl takes in the following four pieces of unique data and returns your data hidden within.
 * Photograph - as a unique map of pixel data, with your data hidden within
 * Filename - the filename of the photo is used (along with other modifiers) to create a hashing salt as well as other **_modifier_** values
-* Passkey1 - is hashed along with it's own salt and returns a 64-1024 length hash. This value becomes part of the algorithm for **_x axis_** coordinates
-* Passkey2 - is hashed along with it's own salt and returns a 64-1024 length hash. This value becomes part of the algorithm for **_y axis_** coordinates
+* Passkey1 - is hashed along with it's own salt and returns a 64 character length hash. This value becomes part of the algorithm for **_x axis_** coordinates
+* Passkey2 - is hashed along with it's own salt and returns a 64 character length hash. This value becomes part of the algorithm for **_y axis_** coordinates
 
 It is only by using the same four unique pieces of data can you retrieve the hidden data you seek.
 
@@ -32,25 +32,25 @@ The functionality of Needl is meant to run 100% serverless. With one of our UI e
 [Image by Studiolarsen](https://pixabay.com/users/studiolarsen-2686243/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1433186) [from Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1433186)  
 > This photo is used for all examples and can be found in the examples folder  
 1. Photograph (4200 x 3000 - total of 12,600,000 pixels)
-2. Filename:  "Haystack-1433186.jpg"
+2. Filename:  "Haystack-1433186"
 3. passkey1:  "MyEasyPassword"  
 4. passkey2:  "personal instagram"  
 _*notice that you can use both pass**words** and pass**phrases** for your passkeys_
 
 Using this unique map of pixels, and three unique keys:  **filename**, **passkey1**, and **passkey2** returns the following _passkey signature_
->?pTP1I}#IX'%q![(=[INK1vb2.Bo-pZm*l3FeLm%C!Ckvp3M+G?aPb\\]:IzIoW:sIn3]2|{ZehX`Fh-gabqI{3gE\F;k|?mxTv?@heEn46pVpv~e?|YT,/?n:YN%VA_?  
+>?pTP1I}(#IX3'%q!\[{e1A6(,=\[INKO1Gvv\[bR2xq=.or.Bo-pZ]B$xm*l3TkFAeLsm%C!CCk^vpc3/FM|+4wGwt>?aPb$\\]M:Izu.Io7WL::hsIIUS2i0Cn3&VeD]S2Z  
 _(default needl size of 128)_
 
 Changing just one piece of data in either **filename**, **passkey1**, or **passkey2** will result in a completely different _passkey signature_.
 
 **_Example 2 (stand-alone):_**
 1. Photograph (4200 x 3000 - total of 12,600,000 pixels)
-2. Filename:  "Haystack-1433186.jpg"
+2. Filename:  "Haystack-1433186"
 3. passkey1:  "MyEasyPassword"  
 4. passkey2:  _"work email"_
 
 Will return the following _passkey signature_:
->ve_5)OH,(=[!#u!aIQI}Ie~1u\\UaN+xnadaUn/~f\\$Wa@WVp$c^'HPin!\\/(|YZ?} L{80d&ygO$O(I 1I!Wm9T&W]Tm``IH<6#Xq<rxoYsaouH\\DLp78<,]xMbQkE|G
+>CcvTeBO_=ay5@6S+>cJS)ONH,D[6(,=[#!_-#u|!aOIlQI}((Ies\~1DSFu\pUaN\\+Cx?/6na>vadaU6na@_J/\~_f=4\\$Wz.(az[@WVxp$c^'{~fszH6wP"[R\6Ti[6nq
 
 #### Used in website or application
 The same principals of the stand alone application apply to using within your websites / apps. As the developer, you can choose to provide one of the unique keys or _modifiers_ and therefore only require your users to provide the correct photo with a **single passkey**. This can be used for standard sign-in practices or as a 2FA method to prove identity.
@@ -59,20 +59,36 @@ The same principals of the stand alone application apply to using within your we
 
 **_Example 1 (website sign-in):_**
 1. Photograph (4200 x 3000 - total of 12,600,000 pixels)
-2. Filename:  "Haystack-1433186.jpg"
+2. Filename:  "Haystack-1433186"
 3. passkey1:  "MyEasyPassword"  
 4. passkey2:  "1acf9d4fd9140b5ee70d86571f9da62b31a795453f439992d14aee4d05b71f45"  
 _passkey2 is filled out with the website's public key (we used github's for this example)_
 
 Will return the following _passkey signature_:
->-)poXG)m^?jec_To\~pdJoIK>n;]bAd\~\\I.Izi6WN/XoIoFq[7H;H!HXdm/\\1tI}i"Sa(>n2M"&I<vdn-~a]&'kL2JgGpPm%d8|+=^!4ylDB;X#;T+'v$F0|IwCGl(YdA
+>oY-8[)po%XGF{"[)m;!S^XxU?jUe)&c_To\~pd&JoIK>J6nt<;%]bApd\~1\RcI.WKIzCi6)\M8$WN/]XfoXkIo:Fq[7q=G)<H;H!9d(_H4IXdw%m/+\1t!I}i?x"SE\\)a
 
 In this example, the user is only asked for their photo and a single passkey. The resulting Needl is sent back to the server and handled like any other password (salted by the server and compare the result with the hash stored in a database)
 
+**_Example 2 (website sign-in):_**
+1. Photograph (4200 x 3000 - total of 12,600,000 pixels)
+2. Filename:  "Haystack-1433186"
+3. passkey1:  "Username as passkey1"  
+4. passkey2:  "Password as passkey2"  
+_Using the following options `{"ndlSize" : 32, "ndlCount" : 2}` we will recieve back two unique passkey signatures_
+
+Will return the following _passkey signatures_:
+>Sx)}R|tTo4J$Bo-pZPA4BI2[6GFh;5Y^
+
+>x<b*}s\YcJM(6nqsp6na;XdnZJ@pzsBz
+
+In this example, the first unique key is sent to the server as the username and the second as the password. This allows for anonymous usernames, protecting the users identity by not using an email address as a username.
+
 ### **Storing custom data within a photograph**
-This was Needl's main function when it was first created in 2018 -- mainly intended for hiding private keys for cyrptocurrencies. For now this feature has been left out, but it will be added back again. Many changes were made to the encoding / decoding algorithms used since the original project. Currently, one of the only downsides to encoding custom data into a photograph is having to keep that photo in a lossless format such as PNG or BMP. Compressed image types, like jpeg, do not store their RGB data for each individual pixel. When unpacking compressed images back into indivual pizels, RGB values may not be calculated the same as they were in the original image. Therefore, it cannot be gauranteed that data encoded in lossy formats will remain.
+This was Needl's main function when it was first created in 2018 -- mainly intended for hiding private keys for cyrptocurrencies. For now this feature has been left out, but it will be added back again. Many changes were made to the encoding / decoding algorithms used since the original project.  
+Compressed image types, like jpeg, do not store their RGB data for each individual pixel. When unpacking compressed images back into indivual pizels, RGB values may not be calculated the same as they were in the original image. Therefore, it cannot be gauranteed that data encoded in lossy formats will remain.
 
 ### Additional modifiers
+The **ndlDate** modifier adds additional uniqueness to the salting process. This can be useful for passwords that are required to be changed with time based frequency.
 
 ## Documentation
 
@@ -84,11 +100,13 @@ Needl uses JavaScript's SubtleDigest to create the hashes it uses. This is an as
 
 ### Options ###
 Without passing an options value in the constructor, the constant `needl_defaults` values will be used. To set custom options, add key-value pairs to a simple object `{}` from the following available options:  
-* **ndlSize** - Set to a value of 0 to decode previously encoded images until a `Null` byte value (0) is found. To generate a unique _passkey signature_, set to a value from 16 to 1024
+* **ndlCount** - Set the number of Needl _passkey signatures_ to return. Default value is 1.
+* **ndlSize** - Set to a value of 0 to decode previously encoded images until a `Null` byte value (0) is found. To generate a unique _passkey signature_, set to a value from 32 to 256
 * **minCapitals** - Set to a value between 1-4 to require a minimum amount of capital letters `[A-Z]` required in your _passkey signature_  
 * **minDigits** - Set to a value between 1-4 to require a minimum amount of digits `[0-9]` required in your _passkey signature_
 * **minSymbols** - Set to a value between 1-4 to require a minimum amount of symbols ``[ !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]`` required in your _passkey signature_
 * **allowedSymbols** - A `String` of allowed symbols from the set ``[ !"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~]``
+* **splitByte** - Splits the value of decoded Bytes. Values of 128-255 are reduced by 128 to increase useable values.
 * **ndlDate** - A Numerical representation of a `Date` such as the `DD-MM-YYYY` format from html `<input type="date">`. This value acts as a modifier to the start x, y position as well as modifying the salting string
 
 ### Public Methods ###
@@ -107,13 +125,10 @@ Without passing an options value in the constructor, the constant `needl_default
 
 ## Additional Information
 **CREATED:**  2018  
-**UPDATED:**  04/04/2024  
-**VERSION:**  0.2.1b  
+**UPDATED:**  04/15/2024  
+**VERSION:**  1.0.0b  
 **NEW:**  
 **FIXES:**  
 **TODO:**
-* Improved validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
-* Add an array that contains all acceptable characters in byte value to check for valid bytes to return to the byte array
-* Separate out iteratePixels and create buildNeedl (which will call iteratePixels and validate the string)
-* Add a second argument to iteratePixels that takes an array of acceptable byte values to add to the byte array
+* Improved validation of input arguements
 * Add encoding method (in version 2)
