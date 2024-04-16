@@ -38,7 +38,7 @@ The functionality of Needl is meant to run 100% serverless. With one of our UI e
 _*notice that you can use both pass**words** and pass**phrases** for your passkeys_
 
 Using this unique map of pixels, and three unique keys:  **filename**, **passkey1**, and **passkey2** returns the following _passkey signature_
->?pTP1I}#IX'%q![(=[INK1vb2.Bo-pZm*l3FeLm%C!Ckvp3M+G?aPb\\]:IzIoW:sIn3]2|{ZehX`Fh-gabqI{3gE\F;k|?mxTv?@heEn46pVpv~e?|YT,/?n:YN%VA_?  
+>?pTP1I}(#IX3'%q![{e1A6(,=[INKO1Gvv[bR2xq=.or.Bo-pZ…M|+4wGwt>?aPb$\\]M:Izu.Io7WL::hsIIUS2i0Cn3&VeD]S2Z  
 _(default needl size of 128)_
 
 Changing just one piece of data in either **filename**, **passkey1**, or **passkey2** will result in a completely different _passkey signature_.
@@ -50,7 +50,7 @@ Changing just one piece of data in either **filename**, **passkey1**, or **passk
 4. passkey2:  _"work email"_
 
 Will return the following _passkey signature_:
->ve_5)OH,(=[!#u!aIQI}Ie~1u\\UaN+xnadaUn/~f\\$Wa@WVp$c^'HPin!\\/(|YZ?} L{80d&ygO$O(I 1I!Wm9T&W]Tm``IH<6#Xq<rxoYsaouH\\DLp78<,]xMbQkE|G
+>CcvTeBO_=ay5@6S+>cJS)ONH,D[6(,=[#!_-#u|!aOIlQI}((Ies~1DSFu\pUaN\+Cx?/6na>vadaU6na@_J/~_f=4\$Wz.(az[@WVxp$c^'{~fszH6wP"[R\6Ti[6nq
 
 #### Used in website or application
 The same principals of the stand alone application apply to using within your websites / apps. As the developer, you can choose to provide one of the unique keys or _modifiers_ and therefore only require your users to provide the correct photo with a **single passkey**. This can be used for standard sign-in practices or as a 2FA method to prove identity.
@@ -65,7 +65,7 @@ The same principals of the stand alone application apply to using within your we
 _passkey2 is filled out with the website's public key (we used github's for this example)_
 
 Will return the following _passkey signature_:
->-)poXG)m^?jec_To\~pdJoIK>n;]bAd\~\\I.Izi6WN/XoIoFq[7H;H!HXdm/\\1tI}i"Sa(>n2M"&I<vdn-~a]&'kL2JgGpPm%d8|+=^!4ylDB;X#;T+'v$F0|IwCGl(YdA
+>oY-8[)po%XGF{"[)m;!S^XxU?jUe)&c_To~pd&JoIK>J6nt<;%]bApd~1\RcI.WKIzCi6)\M8$WN/]XfoXkIo:Fq[7q=G)<H;H!9d(_H4IXdw%m/+\1t!I}i?x"SE\)a
 
 In this example, the user is only asked for their photo and a single passkey. The resulting Needl is sent back to the server and handled like any other password (salted by the server and compare the result with the hash stored in a database)
 
