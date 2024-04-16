@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="needl.class.js"></script>
+    <script src="../needl.class.js"></script>
     <script>
         let haystack = new Image();
         // Callback function for "haystack" Image
@@ -56,8 +56,11 @@
             // Handle configuration options
             // for every option in needl_defaults set options if the value was changed from default
             for (const opt in needl_defaults) {
-                if (f[opt].value != f[opt].dataset.default) {
+                if (f[opt].type != "checkbox" && f[opt].value != f[opt].dataset.default) {
                     options[opt] = f[opt].value;
+                }
+                else if (f[opt].type == "checkbox" && f[opt].checked != Boolean(f[opt].dataset.default)) {
+                    options[opt] = (f[opt].checked) ? true : false;
                 }
             }
             // Set date value if changed
@@ -65,6 +68,13 @@
                 options.ndlDate = f.ndlDate.value;
             }
 
+            // Clear any previous values and reset UI
+            let copyBtn = document.getElementById("copyNdlBtn");
+            let prevBtn = document.getElementById("prevNdlBtn");
+            let nextBtn = document.getElementById("nextNdlBtn");
+            let saveBtn = document.getElementById("saveImage");
+
+            
             // If the haystack (image) is loaded, pass the haystack, filename, passkeys, and options
             if (haystack.complete) {
                 ndl = new Needl(haystack, fn, pk1, pk2, options);
@@ -77,15 +87,63 @@
                 const n = ndl.needl;
                 n.then((r) => {
                     console.log(r);
-                    console.log(r.length);
                     console.log(ndl.results);
-                    taConsole(r, true);
-                    let copyBtn = document.getElementById("copyNdlBtn");
+                    copyBtn.value = 0;
                     copyBtn.disabled = false;
-                    copyBtn.addEventListener("click", () => {navigator.clipboard.writeText(r);});
-                    let saveBtn = document.getElementById("saveImage");
+                    copyBtn.addEventListener("click", () => {navigator.clipboard.writeText(r[copyBtn.value]);});
+                    // Add first needl to the text area
+                    taConsole(r[0], true);
+                    
                     saveBtn.disabled = false;
                     saveBtn.addEventListener("click", savePNG);
+
+                    nextBtn.value = 1;
+                    prevBtn.value = -1;
+
+                    if (nextBtn.value < r.length) {
+                        nextBtn.disabled = false;
+                    }
+                    else {
+                        nextBtn.disabled = true;
+                    }
+
+                    nextBtn.addEventListener("click", () => {
+                        copyBtn.value++;
+                        taConsole(r[copyBtn.value], true);
+                        nextBtn.value++;
+                        prevBtn.value++;
+                        if (nextBtn.value < r.length) {
+                            nextBtn.disabled = false;
+                        }
+                        else {
+                            nextBtn.disabled = true;
+                        }
+                        if (prevBtn.value < 0) {
+                            prevBtn.disabled = true;
+                        }
+                        else {
+                            prevBtn.disabled = false;
+                        }
+                    });
+
+                    prevBtn.addEventListener("click", () => {
+                        copyBtn.value--;
+                        taConsole(r[copyBtn.value], true);
+                        nextBtn.value--;
+                        prevBtn.value--;
+                        if (nextBtn.value < r.length) {
+                            nextBtn.disabled = false;
+                        }
+                        else {
+                            nextBtn.disabled = true;
+                        }
+                        if (prevBtn.value < 0) {
+                            prevBtn.disabled = true;
+                        }
+                        else {
+                            prevBtn.disabled = false;
+                        }
+                    });
                 });
             }
             else {
@@ -123,8 +181,14 @@
             // Set the default values for the form
             let f = document.querySelector("form");
             for (const opt in needl_defaults) {
-                f[opt].value = needl_defaults[opt];
-                f[opt].dataset.default = needl_defaults[opt];
+                if (f[opt].type == "checkbox") {
+                    f[opt].checked = needl_defaults[opt];
+                    f[opt].dataset.default = (needl_defaults[opt]) ? "true" : "";
+                }
+                else {
+                    f[opt].value = needl_defaults[opt];
+                    f[opt].dataset.default = needl_defaults[opt];
+                }
             }
 
             resizeElements();
@@ -228,15 +292,18 @@
                 <button type="button" id="processBtn" onclick="makeNeedl(this);" disabled="true">Process</button>
             </div>
             <div id="settings">
-                <label class="above" for="ndlCount">Needl Count</label><input type="number" id="ndlCount" name="ndlCount" min="1" max="4" step="1" value="1" disabled="true" /><br />
+                <label class="above" for="ndlCount">Needl Count</label><input type="number" id="ndlCount" name="ndlCount" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="ndlSize">Size:  </label><input type="number" id="ndlSize" name="ndlSize" min="32" max="256" step="16" value="128" /><br />
                 <label class="above" for="minCapitals">Minimum Caps:</label><input type="number" id="minCapitals" name="minCapitals" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="minDigits">Minimum Digits:</label><input type="number" id="minDigits" name="minDigits" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="minSymbols">Minimum Symbols:</label><input type="number" id="minSymbols" name="minSymbols" min="1" max="4" step="1" value="1" /><br />
                 <label class="above" for="allowedSymbols">Symbols:  </label><input type="text" id="allowedSymbols" name="allowedSymbols" placeholder="!@#$%^*()_-+=.,>;:" /><br />
+                <label class="above" for="splitByte">Split Byte:  </label><input type="checkbox" id="splitByte" name="splitByte" checked="true" /><br />
             </div>
             <div id="needl">
                 <textarea id="ndlDisplay" name="ndlDisplay" cols="32" rows="4"></textarea><br />
+                <button type="button" id="prevNdlBtn" disabled="true">Previous</button>
+                <button type="button" id="nextNdlBtn" disabled="true">Next</button>
                 <button type="button" id="copyNdlBtn" disabled="true">Copy</button>
                 <button type="button" id="saveImage" disabled="true">Save as PNG</button>
             </div>
