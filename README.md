@@ -81,10 +81,11 @@ Will return the following _passkey signatures_:
 
 >x<b*}s\YcJM(6nqsp6na;XdnZJ@pzsBz
 
-In this example, the first unique key is sent to the server as the username and the second as the password. This allows for anonymous usernames, protexting the users identity by not using an email address as a username.
+In this example, the first unique key is sent to the server as the username and the second as the password. This allows for anonymous usernames, protecting the users identity by not using an email address as a username.
 
 ### **Storing custom data within a photograph**
-This was Needl's main function when it was first created in 2018 -- mainly intended for hiding private keys for cyrptocurrencies. For now this feature has been left out, but it will be added back again. Many changes were made to the encoding / decoding algorithms used since the original project. Currently, one of the only downsides to encoding custom data into a photograph is having to keep that photo in a lossless format such as PNG or BMP. Compressed image types, like jpeg, do not store their RGB data for each individual pixel. When unpacking compressed images back into indivual pizels, RGB values may not be calculated the same as they were in the original image. Therefore, it cannot be gauranteed that data encoded in lossy formats will remain.
+This was Needl's main function when it was first created in 2018 -- mainly intended for hiding private keys for cyrptocurrencies. For now this feature has been left out, but it will be added back again. Many changes were made to the encoding / decoding algorithms used since the original project.  
+Compressed image types, like jpeg, do not store their RGB data for each individual pixel. When unpacking compressed images back into indivual pizels, RGB values may not be calculated the same as they were in the original image. Therefore, it cannot be gauranteed that data encoded in lossy formats will remain.
 
 ### Additional modifiers
 The datetime modifier adds additional uniqueness to the salting process. This can be useful for passwords that are required to be changed with time based frequency.
