@@ -17,7 +17,7 @@ Copyright (C) 2024  Jessie Wise
 NEEDL:  A simple multikey password generator / manager - all from a photo
 CREATED:  2018
 UPDATED:  04/04/2024
-VERSION:  0.2.1b
+VERSION:  1.0.0b
 ABOUT:
     Using two simple passkeys (or phrases) and the photo filename (also used to generate a hashing salt), Needl creates three unique hashes. One for the x axis, one for the y axis, and one as a modififer. 
     Think of a photo as a large two dimensional map of pixels. Needl navigates through that map using coordinates that only your unique hashes can generate.
@@ -35,10 +35,7 @@ NOTES:
     It is advised not to rely on compressed image formats like jpeg. You can not gaurantee that they will be unpacked with the original RGB values. 
     Calling the getter method for haystack will return a lossless format (default PNG) of your original image, maintaining the correct RGB values per pixel.
 TODO:
-    Improved validation of input arguements (image size min requirements, passkey min requirements, filename min requirements)
-    Add an array that contains all acceptable characters in byte value to check for valid bytes to return to the byte array
-    Separate out iteratePixels and create buildNeedl (which will call iteratePixels and validate the string)
-    Add a second argument to iteratePixels that takes an array of acceptable byte values to add to the byte array
+    Improved validation of input arguements
     Add encoding method (in version 2)
 */
 
@@ -51,6 +48,7 @@ const symbol_sets = {
 
 // Defaults set here overwrite the Needl class defaults.
 const needl_defaults = {
+    "ndlCount" : 1,
     "ndlSize" : 128,
     "minCapitals" : 1,
     "minDigits" : 1,
@@ -69,8 +67,8 @@ class Needl {
     // Haystack and Needl
     #canvas = document.createElement("canvas");
     #haystack = this.#canvas.getContext("2d", { willReadFrequently: true, colorSpace: "srgb" });
-    #cursor = { "start" : {}, "iterator" : {}, "modifier" : {} };
-    #needl = "";
+    #cursor = { "start" : {}, "currentPos" : {}, "iterator" : {}, "modifier" : {} };
+    #needl = [];
 
     // Buffers to hold values
     #base11Buffer = [];
@@ -82,6 +80,7 @@ class Needl {
 
     // Options
     #ndlOptions = {
+        "ndlCount" : 1,
         "ndlSize" : 128,
         "minCapitals" : 1,
         "minDigits" : 1,
@@ -93,7 +92,7 @@ class Needl {
     // Arguments:  image is an HTML image element; filename, pk1, and pk2 are strings; options is a key-value pair collection (not required)
     constructor(image, fn, pk1, pk2, options = {}) {
         // Merge options with needl_defaults and overwrite with assigned values
-        this.#ndlOptions = {...needl_defaults, ...options};
+        this.#ndlOptions = {...this.#ndlOptions, ...needl_defaults, ...options};
         // Add the date modifier if set in options
         if (options.hasOwnProperty("ndlDate")) {
             this.#cursor.modifier.dateSalt = options.ndlDate;
@@ -191,17 +190,92 @@ class Needl {
         } 
     }
 
-    #decode(until) {
-        // This function will call iteratePixels which will return a pixelGrid
-        // Much of the functionality of iterate pixels will move to this method
-        if (until == 0) {
+    #decode() {
+        // Set current cursor position to the start x and y
+        this.#cursor.currentPos = { 
+            "x" : (this.#cursor.start.x * this.#cursor.modifier.multiplier) % this.#canvas.width, 
+            "y" : (this.#cursor.start.y * this.#cursor.modifier.multiplier) % this.#canvas.height };
+        
+            // reset iterator counter
+        this.#cursor.iterator.count = 0;
+        
+        // Decode until Null found in byteBuffer (previously encoded data)
+        if (this.#ndlOptions.ndlCount == 0) {
             // This means iteratePixels until a byte value of 0 (Null) is decoded
             // Decoding previously encoded data terminated with a byte value of 0 (Null)
             return true; // when found null and completed
         }
-        else if (until > 16 && until <= 1024) {
-            // Iterate pixels for the requested amount in range of 16-1024
+        // Decode the following number of Needl passkey signatures
+        else if (this.#ndlOptions.ndlCount > 0) {
+            // Iterate pixels and produce valid needl keys until count is reached
             // Decoding raw data from pixels for passkey generation.
+
+            for (let i = 0; i < this.#ndlOptions.ndlCount; i++) {
+                // get initial needl key
+                while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
+                    this.#iteratePixels();
+                    
+                    // break out condition
+                    //  TODO:  Improve this breakout condition
+                    if (this.#cursor.iterator.count == 1000) {
+                        console.log("force loop break, while loop at 1000 iterations");
+                        return false;
+                    }
+                }
+
+                // Byte buffer size has been fulfilled
+                let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlOptions.ndlSize));
+                let tempNeedl = new TextDecoder().decode(byteArray);
+
+                // While Needl passkey signature value requirements are not met, re-iterate pixels until they are
+                while (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals || tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits || tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols) {
+                    console.log("Missing Needl passkey signature requirements");
+
+                    this.#iteratePixels();
+
+                    // Check the new byte buffer for a needed value
+                    for (let i = 0; i < this.#byteBuffer.length; i++) {
+                        // Check for digits
+                        if (tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits && (this.#byteBuffer[i] >= 48 && this.#byteBuffer[i] <= 57)) {
+                            // Add found digit to byteArray in a specific position
+                            byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
+                        }
+
+                        // Check for capitals
+                        if (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals && (this.#byteBuffer[i] >= 65 && this.#byteBuffer[i] <= 90)) {
+                            // Add found capital to byteArray in a specific position
+                            byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
+                        }
+                        
+                        // Check for symbols 
+                        let allowedSymbolsArray = Array.from(this.#ndlOptions.allowedSymbols, val => val.charCodeAt(0));
+                        if (tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols && allowedSymbolsArray.includes(this.#byteBuffer[i])) {
+                            // Add found symbol to byteArray in a specific position
+                            byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
+                        }
+                    }
+
+                    // Rebuild the tempNeedl string for the next loop to check against
+                    tempNeedl = new TextDecoder().decode(byteArray);
+                    // Clear the byteBuffer before next loop
+                    this.#byteBuffer = [];
+
+                    // break out condition
+                    //  TODO:  Improve this breakout condition
+                    if (this.#cursor.iterator.count == 1000) {
+                        console.log("force loop break, while loop at 1000 iterations");
+                        return false;
+                    }
+                }
+
+                // Requirements have been met in the tempNeedl, add value to the private class property "needl"
+                this.#needl.push(tempNeedl);
+                
+                // Clear the buffers
+                this.#base11Buffer = [];
+                this.#byteBuffer = [];
+            }
+
             return true; // when decoded enough acceptable characters into byte array to create needl and validated for requirements met
         }
         else {
@@ -214,112 +288,16 @@ class Needl {
     }
 
     #iteratePixels() {
-        // Set current cursor position to the start x and y
-        let currentPos = { 
-            "x" : (this.#cursor.start.x * this.#cursor.modifier.multiplier) % this.#canvas.width, 
-            "y" : (this.#cursor.start.y * this.#cursor.modifier.multiplier) % this.#canvas.height };
+        // Move cursor based on iterator position on x, y, and salt hashes
+        let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
+        this.#cursor.currentPos.x = ((this.#cursor.currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
+        this.#cursor.currentPos.y = ((this.#cursor.currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
         
-        // Iterate pixels until satifying desired "needle" passcode length
-        this.#cursor.iterator.count = 0;
-        // Will need to eventually move this loop into a separate own method
-        while (this.#byteBuffer.length < this.#ndlOptions.ndlSize) {
-            // Move cursor based on iterator position on x, y, and salt hashes
-            let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
-            currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
-            currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
-            
-            // Get  3x3 pixel grid from image context
-            //  BUG:  iOS doesn't respect the colorspace and returns pixels values different from other systems
-            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3, { colorSpace: "srgb" });
-            this.#parsePixelGrid(Array.from(pixelGrid.data));
-            this.#cursor.iterator.count++;
-            
-            // Back up condition to break the loop with an error
-            //  TODO:  Improve this.
-            if (this.#cursor.iterator.count == 1000) {
-                console.log("force loop break, while loop at 1000 iterations");
-                break;
-            }
-        }
-        
-        // Byte buffer size has been fulfilled
-        let byteArray = Uint8Array.from(this.#byteBuffer.splice(0, this.#ndlOptions.ndlSize));
-        let tempNeedl = new TextDecoder().decode(byteArray);
-        
-        // Validate required number of capitals, digits, and symbols
-        /* DISPLAY FOR DEBUGGING
-        console.log(tempNeedl);
-        let capitalMatches = tempNeedl.match(/[A-Z]/g);
-        let digitMatches = tempNeedl.match(/[0-9]/g);
-        let symbolMatches = tempNeedl.match(/[\W_]/g);
-        console.log("Min capitals:  " + this.#ndlOptions.minCapitals);
-        console.log("Capital letters:  " + capitalMatches.length);
-        console.log("Min digits:  " + this.#ndlOptions.minDigits);
-        console.log("Digit count:  " + digitMatches.length);
-        console.log("Min symbols:  " + this.#ndlOptions.minSymbols);
-        console.log("Symbol count:  " + symbolMatches.length);
-        */
-
-        // Re-iterate pixels until requirements are satified
-        while (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals || tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits || tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols) {
-            console.log("Missing string requirements");
-            
-            // Move cursor based on iterator position on x, y, and salt hashes
-            let c = this.#cursor.iterator.count % Math.min(this.#cursor.iterator.x.length, this.#cursor.iterator.y.length, this.#cursor.iterator.salt.length);
-            currentPos.x = ((currentPos.x + parseInt(this.#cursor.iterator.x.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.width;
-            currentPos.y = ((currentPos.y + parseInt(this.#cursor.iterator.y.charAt(c), 16) + parseInt(this.#cursor.iterator.salt.charAt(c), 16)) * this.#cursor.modifier.multiplier) % this.#canvas.height;
-            
-            // Get  3x3 pixel grid from image context
-            let pixelGrid = this.#haystack.getImageData(currentPos.x - 1, currentPos.y - 1, 3, 3);
-            this.#parsePixelGrid(Array.from(pixelGrid.data));
-            this.#cursor.iterator.count++;
-
-            // Check the new byte buffer for needed value
-            for (let i = 0; i < this.#byteBuffer.length; i++) {
-                // Check for digits
-                if (tempNeedl.match(/[0-9]/g).length < this.#ndlOptions.minDigits && (this.#byteBuffer[i] >= 48 && this.#byteBuffer[i] <= 57)) {
-                    // Found a digit
-                    console.log("found a digit");
-                    // Add found digit to byteArray in a specific position
-                    byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
-                }
-
-                // Check for capitals
-                if (tempNeedl.match(/[A-Z]/g).length < this.#ndlOptions.minCapitals && (this.#byteBuffer[i] >= 65 && this.#byteBuffer[i] <= 90)) {
-                    // Found a capital
-                    console.log("found a capital");
-                    // Add found capital to byteArray in a specific position
-                    byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
-                }
-                
-                // Check for symbols 
-                let allowedSymbolsArray = Array.from(this.#ndlOptions.allowedSymbols, val => val.charCodeAt(0));
-                if (tempNeedl.match(/[\W_]/g).length < this.#ndlOptions.minSymbols && allowedSymbolsArray.includes(this.#byteBuffer[i])) {
-                    // Found a symbol
-                    console.log("found a symbol");
-                    // Add found symbol to byteArray in a specific position
-                    byteArray[this.#cursor.iterator.count % this.#ndlOptions.ndlSize] = this.#byteBuffer[i];
-                }
-            }
-
-            // Rebuild the tempNeedl string
-            tempNeedl = new TextDecoder().decode(byteArray);
-            // Clear the byteBuffer before next loop
-            this.#byteBuffer = [];
-
-            // Back up condition to break the loop with an error
-            //  TODO:  Improve this.
-            if (this.#cursor.iterator.count == 1000) {
-                console.log("force loop break, while loop at 1000 iterations");
-                break;
-            }
-        }
-        // Requirements have been met in the tempNeedl, set the private class property "needl"
-        this.#needl = tempNeedl;
-        
-        // Clear the buffers
-        this.#base11Buffer = [];
-        this.#byteBuffer = [];
+        // Get  3x3 pixel grid from image context
+        //  BUG:  iOS doesn't respect the colorspace and returns pixels values different from other systems
+        let pixelGrid = this.#haystack.getImageData(this.#cursor.currentPos.x - 1, this.#cursor.currentPos.y - 1, 3, 3, { colorSpace: "srgb" });
+        this.#parsePixelGrid(Array.from(pixelGrid.data));
+        this.#cursor.iterator.count++;
     }
 
     #parsePixelGrid(pixelGridArray) {
@@ -390,7 +368,6 @@ class Needl {
         // If no special byte is present, we should have a valueString with a length of 10
         if (valuesString.length == 10) {
             let fiveBytes = valuesString.match(/([a-f\d]{2})/g);
-            // let returnArray = [];
             for (var i = 0; i < fiveBytes.length; i++) {
                 let decValue = parseInt(fiveBytes[i], 16);
                 // The splitByte property allows use of decimal values between 128 and 255
@@ -405,9 +382,9 @@ class Needl {
                 if (decValue >= 65 && decValue <= 90 || decValue >= 97 && decValue <= 122 || decValue >= 48 && decValue <= 57 || allowedSymbolsArray.includes(decValue)) {
                     this.#byteBuffer.push(decValue);
                 }
-                // This is used for decoding of encoded information
+                // This is used for decoding of previously encoded information
                 if (decValue == 0) {
-                    console.log("Null found");
+                    //console.log("Null found");
                 }
             }
         }
@@ -415,7 +392,7 @@ class Needl {
 
     async #findNeedl() {
         await this.#makeHashes();
-        this.#iteratePixels();
+        this.#decode();
 
         return this.#needl;
     }
@@ -425,7 +402,7 @@ class Needl {
     }
 
     get needl() {
-        if (this.#needl.length != this.#ndlOptions.ndlSize) {
+        if (this.#needl.length != this.#ndlOptions.ndlCount) {
             // Returns a promise to resolve value
             return this.#findNeedl();
         }
