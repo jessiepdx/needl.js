@@ -45,7 +45,7 @@ Changing just one piece of data in either **filename**, **passkey1**, or **passk
 
 **_Example 2 (stand-alone):_**
 1. Photograph (4200 x 3000 - total of 12,600,000 pixels)
-2. Filename:  "Haystack-1433186.jpg"
+2. Filename:  "Haystack-1433186"
 3. passkey1:  "MyEasyPassword"  
 4. passkey2:  _"work email"_
 
@@ -59,7 +59,7 @@ The same principals of the stand alone application apply to using within your we
 
 **_Example 1 (website sign-in):_**
 1. Photograph (4200 x 3000 - total of 12,600,000 pixels)
-2. Filename:  "Haystack-1433186.jpg"
+2. Filename:  "Haystack-1433186"
 3. passkey1:  "MyEasyPassword"  
 4. passkey2:  "1acf9d4fd9140b5ee70d86571f9da62b31a795453f439992d14aee4d05b71f45"  
 _passkey2 is filled out with the website's public key (we used github's for this example)_
@@ -71,7 +71,7 @@ In this example, the user is only asked for their photo and a single passkey. Th
 
 **_Example 2 (website sign-in):_**
 1. Photograph (4200 x 3000 - total of 12,600,000 pixels)
-2. Filename:  "Haystack-1433186.jpg"
+2. Filename:  "Haystack-1433186"
 3. passkey1:  "Username as passkey1"  
 4. passkey2:  "Password as passkey2"  
 _Using the following options `{"ndlSize" : 32, "ndlCount" : 2}` we will recieve back two unique passkey signatures_
@@ -88,7 +88,7 @@ This was Needl's main function when it was first created in 2018 -- mainly inten
 Compressed image types, like jpeg, do not store their RGB data for each individual pixel. When unpacking compressed images back into indivual pizels, RGB values may not be calculated the same as they were in the original image. Therefore, it cannot be gauranteed that data encoded in lossy formats will remain.
 
 ### Additional modifiers
-The datetime modifier adds additional uniqueness to the salting process. This can be useful for passwords that are required to be changed with time based frequency.
+The **ndlDate** modifier adds additional uniqueness to the salting process. This can be useful for passwords that are required to be changed with time based frequency.
 
 ## Documentation
 
